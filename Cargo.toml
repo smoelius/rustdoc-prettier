@@ -1,0 +1,19 @@
+[package]
+name = "rustdoc-prettier"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0", features = ["backtrace"] }
+ctrlc = "3.4"
+itertools = "0.13"
+tempfile = "3.10"
+
+[features]
+check-offsets = []
+check-spans = []
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+format-collect = "allow"
+struct-field-names = "allow"
