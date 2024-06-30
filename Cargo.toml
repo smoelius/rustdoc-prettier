@@ -1,7 +1,11 @@
 [package]
 name = "rustdoc-prettier"
 version = "0.1.0"
+authors = ["Samuel Moelius <sam@moeli.us>"]
+description = "Format `//!` and `///` comments with prettier"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/smoelius/rustdoc-prettier"
 
 [dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }
