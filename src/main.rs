@@ -241,7 +241,7 @@ fn prettier_spawner(
             command.arg("--parser=markdown");
             if let Some(max_width) = opts.max_width {
                 command.arg("--prose-wrap=always");
-                command.arg(&format!(
+                command.arg(format!(
                     "--print-width={}",
                     max_width.saturating_sub(characteristics.indent + 4)
                 ));
