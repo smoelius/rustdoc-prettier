@@ -3,6 +3,7 @@
 //! Format `//!` and `///` comments with prettier
 
 use anyhow::{anyhow, bail, ensure, Result};
+use assert_cmd::output::OutputError;
 use itertools::Itertools;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
@@ -272,7 +273,8 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
     let output = prettier.wait_with_output()?;
     ensure!(
         output.status.success(),
-        "prettier exited abnormally: {output:#?}"
+        "prettier exited abnormally: {}",
+        OutputError::new(output)
     );
 
     let docs = String::from_utf8(output.stdout)?;
