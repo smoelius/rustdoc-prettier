@@ -4,6 +4,7 @@
 
 use anyhow::{anyhow, bail, ensure, Result};
 use itertools::Itertools;
+use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
     env,
     fs::{read_to_string, write},
@@ -16,19 +17,6 @@ use std::{
     },
     thread,
 };
-
-mod backup;
-use backup::Backup;
-
-mod offset_based_rewriter;
-
-mod offset_calculator;
-
-mod rewriter;
-use rewriter::Rewriter;
-
-mod span;
-use span::{LineColumn, Span};
 
 #[derive(Clone, Default)]
 struct Options {
@@ -162,7 +150,7 @@ fn format_file(opts: Options, path: String) -> Result<()> {
         };
         let span = Span::new(start, end);
 
-        rewriter.rewrite(span, &docs);
+        rewriter.rewrite(&span, &docs);
     }
 
     let contents = rewriter.contents();

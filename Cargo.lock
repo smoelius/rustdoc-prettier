@@ -161,6 +161,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rewriter"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81a417374326652efe672e1b1b07a207193f10059e3d55c5cf298248def47c52"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -173,6 +182,7 @@ dependencies = [
  "anyhow",
  "ctrlc",
  "itertools",
+ "rewriter",
  "tempfile",
 ]
 
