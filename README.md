@@ -36,7 +36,9 @@ is converted to options of the form:
 
 where `M` is `N` minus the width of the indentation, of the
 `//!` or `///` syntax, and of the space that might follow that
-syntax. See: https://prettier.io/docs/en/options.html
+syntax. If the current directory contains a rustfmt.toml file
+with a `max_width` key, the `--max-width` option will be applied
+automatically. See: https://prettier.io/docs/en/options.html
 
 ## Notes
 
