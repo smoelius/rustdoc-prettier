@@ -306,3 +306,19 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
         .map_err(|error| anyhow!("{error:?}"))
         .and_then(std::convert::identity)
 }
+
+#[cfg(test)]
+mod test {
+    use std::fs::read_to_string;
+
+    #[test]
+    fn readme_contains_help() {
+        let readme = read_to_string("README.md").unwrap();
+        // smoelius: Skip the first two lines, which give the usage.
+        let help = super::HELP
+            .split_inclusive('\n')
+            .skip(2)
+            .collect::<String>();
+        assert!(readme.contains(&help));
+    }
+}
