@@ -8,7 +8,7 @@ Format `//!` and `///` comments with [`prettier`]
 cargo install rustdoc-prettier
 ```
 
-`rustdoc-prettier` requires `prettier` to be installed separately, e.g.:
+`rustdoc-prettier` requires `prettier` to be installed independently, e.g.:
 
 ```sh
 npm install -g prettier
