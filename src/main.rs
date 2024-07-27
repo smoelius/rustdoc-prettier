@@ -72,7 +72,7 @@ fn main() -> Result<()> {
         handles.push(thread::spawn(|| format_file(opts, path)));
     }
     for handle in handles {
-        join(handle)?;
+        join_anyhow(handle)?;
     }
     for mut backup in backups {
         backup.disable()?;
@@ -169,7 +169,7 @@ fn format_file(opts: Options, path: String) -> Result<()> {
 
     write(path, contents)?;
 
-    join(handle)?;
+    join_anyhow(handle)?;
 
     Ok(())
 }
@@ -310,7 +310,7 @@ fn postprocess_docs(characteristics: Characteristics, docs: &str) -> String {
         .collect()
 }
 
-fn join<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
+fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
     handle
         .join()
         .map_err(|error| anyhow!("{error:?}"))
