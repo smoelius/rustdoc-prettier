@@ -11,6 +11,7 @@ use std::{
     fs::{read_to_string, write},
     io::Write,
     ops::Range,
+    path::Path,
     process::{exit, Child, Command, Stdio},
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -50,6 +51,9 @@ static CTRLC: AtomicBool = AtomicBool::new(false);
 fn main() -> Result<()> {
     ctrlc::set_handler(|| CTRLC.store(true, Ordering::SeqCst))?;
     let mut opts = process_args()?;
+    if opts.max_width.is_none() {
+        opts.max_width = rustfmt_max_width()?;
+    }
     let paths = opts.paths.split_off(0);
     let backups = paths
         .iter()
@@ -113,11 +117,30 @@ is converted to options of the form:
 
 where `M` is `N` minus the width of the indentation, of the
 `//!` or `///` syntax, and of the space that might follow that
-syntax. See: https://prettier.io/docs/en/options.html";
+syntax. If the current directory contains a rustfmt.toml file
+with a `max_width` key, the `--max-width` option will be applied
+automatically. See: https://prettier.io/docs/en/options.html";
 
 fn help() -> ! {
     println!("{HELP}");
     exit(0);
+}
+
+fn rustfmt_max_width() -> Result<Option<usize>> {
+    let path = Path::new("rustfmt.toml");
+    if !path.try_exists()? {
+        return Ok(None);
+    }
+    let contents = read_to_string(path)?;
+    let table = contents.parse::<toml::Table>()?;
+    let Some(max_width) = table.get("max_width") else {
+        return Ok(None);
+    };
+    let Some(max_width_i64) = max_width.as_integer() else {
+        bail!("`max_width` is not an integer");
+    };
+    let max_width = usize::try_from(max_width_i64)?;
+    Ok(Some(max_width))
 }
 
 fn format_file(opts: Options, path: String) -> Result<()> {
