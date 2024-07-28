@@ -16,10 +16,6 @@ rewriter = "0.1"
 tempfile = "3.10"
 toml = "0.8"
 
-[features]
-check-offsets = []
-check-spans = []
-
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 format-collect = "allow"
