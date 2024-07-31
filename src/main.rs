@@ -115,8 +115,8 @@ is converted to options of the form:
     --prose-wrap always --print-width <M>
 ```
 
-where `M` is `N` minus the width of the indentation, of the
-`//!` or `///` syntax, and of the space that might follow that
+where `M` is `N` minus the sum of the widths of the indentation,
+the `//!` or `///` syntax, and the space that might follow that
 syntax. If the current directory contains a rustfmt.toml file
 with a `max_width` key, the `--max-width` option will be applied
 automatically. See: https://prettier.io/docs/en/options.html";
