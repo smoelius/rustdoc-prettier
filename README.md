@@ -24,21 +24,26 @@ Arguments ending with `.rs` are considered source files and are
 formatted. All other arguments are forwarded to `prettier`, with
 one exception. An option of the form:
 
-```
     ---max-width <N>
-```
 
 is converted to options of the form:
 
-```
     --prose-wrap always --print-width <M>
-```
 
 where `M` is `N` minus the sum of the widths of the indentation,
 the `//!` or `///` syntax, and the space that might follow that
 syntax. If the current directory contains a rustfmt.toml file
 with a `max_width` key, the `--max-width` option is applied
-automatically. See: https://prettier.io/docs/en/options.html
+automatically.
+
+rustdoc-prettier supports glob patterns. Example:
+
+    rustdoc-prettier '**/*.rs'
+
+References
+
+- https://prettier.io/docs/en/options.html
+- https://rust-lang.github.io/rustfmt/?version=master&search=
 
 ## Notes
 
