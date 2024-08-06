@@ -35,6 +35,7 @@ jobs:
 
       - name: Install tools
         run: |
+          npm install -g prettier
           rustup install nightly
           rustup component add clippy --toolchain nightly
 
