@@ -4,6 +4,7 @@
 
 use anyhow::{anyhow, bail, ensure, Result};
 use assert_cmd::output::OutputError;
+use glob::glob;
 use itertools::Itertools;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
@@ -23,7 +24,7 @@ use std::{
 #[derive(Clone, Default)]
 struct Options {
     max_width: Option<usize>,
-    paths: Vec<String>,
+    patterns: Vec<String>,
     args: Vec<String>,
 }
 
@@ -54,16 +55,21 @@ fn main() -> Result<()> {
     if opts.max_width.is_none() {
         opts.max_width = rustfmt_max_width()?;
     }
-    let paths = opts.paths.split_off(0);
-    let backups = paths
-        .iter()
-        .map(|path| Backup::new(path).map_err(Into::into))
-        .collect::<Result<Vec<_>>>()?;
+
+    let mut backups = Vec::new();
     let mut handles = Vec::new();
-    for path in paths {
-        let opts = opts.clone();
-        handles.push(thread::spawn(|| format_file(opts, path)));
+    // smoelius: Split off `opts.patterns` so that its contents are not cloned before each call to
+    // `thread::spawn`.
+    for pattern in opts.patterns.split_off(0) {
+        for result in glob(&pattern)? {
+            let path = result?;
+            let backup = Backup::new(&path)?;
+            backups.push(backup);
+            let opts = opts.clone();
+            handles.push(thread::spawn(|| format_file(opts, path)));
+        }
     }
+
     for handle in handles {
         join_anyhow(handle)?;
     }
@@ -89,7 +95,7 @@ fn process_args() -> Result<Options> {
             let width = arg.parse()?;
             opts.max_width = Some(width);
         } else if arg.to_lowercase().ends_with(".rs") {
-            opts.paths.push(arg);
+            opts.patterns.push(arg);
         } else {
             opts.args.push(arg);
         }
@@ -143,7 +149,7 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
     Ok(Some(max_width))
 }
 
-fn format_file(opts: Options, path: String) -> Result<()> {
+fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let contents = read_to_string(&path)?;
 
     let chunks = chunk(&contents);
