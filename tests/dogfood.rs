@@ -8,10 +8,8 @@ use std::{
 #[test]
 fn dogfood() {
     preserves_cleanliness("dogfood", || {
-        Command::cargo_bin("rustdoc-prettier")
-            .unwrap()
-            .assert()
-            .success();
+        let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+        command.arg("src/**/*.rs").assert().success();
     });
 }
 
