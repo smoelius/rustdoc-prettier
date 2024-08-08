@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Improve help message ([055aebc](https://github.com/smoelius/rustdoc-prettier/commit/055aebccef6a09ee5ac0ef14383f592a23bf6360), [8cf6c6f](https://github.com/smoelius/rustdoc-prettier/commit/8cf6c6f26fe8a4346a5b0569ede4552ae61f89f8), and [8217aeb](https://github.com/smoelius/rustdoc-prettier/commit/8217aebcd2d230276e67e42257a6b9d345451d67))
+- FEATURE: Support glob patterns ([5c33ddf](https://github.com/smoelius/rustdoc-prettier/commit/5c33ddfde42e8d807a9b553748a0b89b99df7e71))
+
 ## 0.1.1
 
 - Improve error messages ([#3](https://github.com/smoelius/rustdoc-prettier/pull/3))
