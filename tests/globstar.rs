@@ -6,7 +6,7 @@ use tempfile::tempdir;
 #[test]
 fn globstar() {
     let tempdir = tempdir().unwrap();
-    copy_into("fixtures/globstar", tempdir.path()).unwrap();
+    copy_into("fixtures/globstar", &tempdir).unwrap();
     let path = tempdir.path().join("globstar");
 
     let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
