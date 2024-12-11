@@ -35,6 +35,7 @@ struct Chunk {
     docs: String,
 }
 
+/// Describes doc comments that need formatting
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct Characteristics {
     indent: usize,
