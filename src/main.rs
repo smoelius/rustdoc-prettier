@@ -17,6 +17,7 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         mpsc::{sync_channel, Receiver, SyncSender},
+        Condvar, LazyLock, Mutex, MutexGuard,
     },
     thread,
 };
@@ -47,6 +48,16 @@ enum DocKind {
     Inner,
     Outer,
 }
+
+static N_THREADS: LazyLock<usize> = LazyLock::new(|| {
+    std::cmp::max(
+        1,
+        thread::available_parallelism()
+            .unwrap()
+            .get()
+            .saturating_sub(1),
+    )
+});
 
 static CTRLC: AtomicBool = AtomicBool::new(false);
 
@@ -165,7 +176,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         .map(|chunk| chunk.characteristics)
         .collect::<Vec<_>>();
 
-    let (sender, receiver) = sync_channel::<Child>(0);
+    let (sender, receiver) = sync_channel::<Child>(*N_THREADS);
     let handle = thread::spawn(move || prettier_spawner(&opts, characteristics, &sender));
 
     let mut rewriter = Rewriter::new(&contents);
@@ -265,33 +276,38 @@ fn preprocess_line(line: &str) -> (Option<Characteristics>, &str) {
 ///
 /// Note that `characteristics` influences the arguments passed to `prettier`. So the `prettier`
 /// instances must be consumed in the same order in which they were spawned.
+#[allow(clippy::unnecessary_wraps)]
 fn prettier_spawner(
     opts: &Options,
     characteristics: Vec<Characteristics>,
     sender: &SyncSender<Child>,
 ) -> Result<()> {
-    let children = characteristics
-        .into_iter()
-        .map(|characteristics| {
-            let mut command = Command::new("prettier");
-            command.arg("--parser=markdown");
-            if let Some(max_width) = opts.max_width {
-                command.arg("--prose-wrap=always");
-                command.arg(format!(
-                    "--print-width={}",
-                    max_width.saturating_sub(characteristics.indent + 4)
-                ));
-            }
-            command.args(&opts.args);
-            command
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped());
-            command.spawn().expect("failed to spawn `prettier`")
-        })
-        .collect::<Vec<_>>();
-    for child in children {
-        sender.send(child)?;
+    for characteristics in characteristics {
+        let mut used_parallelism = lock_used_parallelism_for_incrementing();
+        let mut command = Command::new("prettier");
+        command.arg("--parser=markdown");
+        if let Some(max_width) = opts.max_width {
+            command.arg("--prose-wrap=always");
+            command.arg(format!(
+                "--print-width={}",
+                max_width.saturating_sub(characteristics.indent + 4)
+            ));
+        }
+        command.args(&opts.args);
+        command
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        let child = command.spawn().expect("failed to spawn `prettier`");
+        // smoelius: The next send should never fail. The channel is created with a capacity of
+        // `N_THREADS`, and no more than `N_THREADS` children exist at any time.
+        sender.try_send(child).unwrap_or_else(|error| {
+            panic!(
+                "tried to send more than {} children on channel: {error:?}",
+                *N_THREADS
+            )
+        });
+        *used_parallelism += 1;
     }
     Ok(())
 }
@@ -313,9 +329,29 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
         OutputError::new(output)
     );
 
+    decrement_used_parallelism();
+
     let docs = String::from_utf8(output.stdout)?;
 
     Ok(postprocess_docs(chunk.characteristics, &docs))
+}
+
+static USED_PARALLELISM: Mutex<usize> = Mutex::new(0);
+static USED_PARALLELISM_CONDVAR: Condvar = Condvar::new();
+
+fn lock_used_parallelism_for_incrementing() -> MutexGuard<'static, usize> {
+    let used_parallelism = USED_PARALLELISM.lock().unwrap();
+    USED_PARALLELISM_CONDVAR
+        .wait_while(used_parallelism, |used_parallelism| {
+            *used_parallelism >= *N_THREADS
+        })
+        .unwrap()
+}
+
+fn decrement_used_parallelism() {
+    let mut used_parallelism = USED_PARALLELISM.lock().unwrap();
+    *used_parallelism -= 1;
+    USED_PARALLELISM_CONDVAR.notify_one();
 }
 
 fn postprocess_docs(characteristics: Characteristics, docs: &str) -> String {
