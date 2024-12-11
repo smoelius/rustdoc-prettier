@@ -21,3 +21,11 @@ toml = "0.8"
 pedantic = { level = "warn", priority = -1 }
 format-collect = "allow"
 struct-field-names = "allow"
+
+[[workspace.metadata.dylint.libraries]]
+git = "https://github.com/trailofbits/dylint"
+pattern = [
+    "examples/general",
+    "examples/supplementary",
+    "examples/restriction/inconsistent_qualification",
+]
