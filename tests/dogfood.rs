@@ -1,7 +1,8 @@
-use assert_cmd::Command;
+use assert_cmd::cargo::CommandCargoExt;
 use std::{
     env::var,
     io::{stderr, Write},
+    process::Command,
     sync::Mutex,
 };
 
@@ -9,7 +10,9 @@ use std::{
 fn dogfood() {
     preserves_cleanliness("dogfood", || {
         let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
-        command.arg("src/**/*.rs").assert().success();
+        command.arg("src/**/*.rs");
+        let status = command.status().unwrap();
+        assert!(status.success());
     });
 }
 
