@@ -1,6 +1,6 @@
 [package]
 name = "rustdoc-prettier"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Samuel Moelius <sam@moeli.us>"]
 description = "Format //! and /// comments with prettier"
 edition = "2021"
