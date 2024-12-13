@@ -2,7 +2,7 @@
 
 ## 0.3.0
 
-- Spawn no more than `std::threads::available_parallelism() - 1` threads at any time ([#32](https://github.com/smoelius/rustdoc-prettier/pull/32))
+- FEATURE: Spawn no more than `std::threads::available_parallelism() - 1` threads at any time ([#32](https://github.com/smoelius/rustdoc-prettier/pull/32))
 
 ## 0.2.0
 
