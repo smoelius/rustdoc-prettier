@@ -14,7 +14,7 @@ ctrlc = "3.4"
 glob = "0.3"
 itertools = "0.14"
 rewriter = "0.1"
-tempfile = "3.16"
+tempfile = "3.17"
 toml = "0.8"
 
 [lints.clippy]
