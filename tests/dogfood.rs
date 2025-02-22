@@ -1,7 +1,7 @@
 use assert_cmd::cargo::CommandCargoExt;
 use std::{
     env::var,
-    io::{stderr, Write},
+    io::{Write, stderr},
     process::Command,
     sync::Mutex,
 };

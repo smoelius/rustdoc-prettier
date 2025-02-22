@@ -2,7 +2,7 @@
 //!
 //! Format `//!` and `///` comments with prettier
 
-use anyhow::{anyhow, bail, ensure, Result};
+use anyhow::{Result, anyhow, bail, ensure};
 use assert_cmd::output::OutputError;
 use glob::glob;
 use itertools::Itertools;
@@ -13,11 +13,11 @@ use std::{
     io::Write,
     ops::Range,
     path::Path,
-    process::{exit, Child, Command, Stdio},
+    process::{Child, Command, Stdio, exit},
     sync::{
-        atomic::{AtomicBool, Ordering},
-        mpsc::{sync_channel, Receiver, SyncSender},
         Condvar, LazyLock, Mutex, MutexGuard,
+        atomic::{AtomicBool, Ordering},
+        mpsc::{Receiver, SyncSender, sync_channel},
     },
     thread,
 };

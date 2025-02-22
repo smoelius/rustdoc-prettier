@@ -1,4 +1,4 @@
-use anyhow::{ensure, Result};
+use anyhow::{Result, ensure};
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
 use std::{fs::read_to_string, path::Path, process::Command};
 use tempfile::tempdir;
