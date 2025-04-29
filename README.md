@@ -32,9 +32,9 @@ is converted to options of the form:
 
 where `M` is `N` minus the sum of the widths of the indentation,
 the `//!` or `///` syntax, and the space that might follow that
-syntax. If the current directory contains a rustfmt.toml file
-with a `max_width` key, the `--max-width` option is applied
-automatically.
+syntax. If a rustfmt.toml file with a `max_width` key is found
+in the current directory or a parent directory, the
+`--max-width` option is applied automatically.
 
 rustdoc-prettier supports glob patterns. Example:
 

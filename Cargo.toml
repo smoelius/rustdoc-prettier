@@ -17,6 +17,9 @@ rewriter = "0.1"
 tempfile = "3.19"
 toml = "0.8"
 
+[dev-dependencies]
+similar-asserts = "1.7"
+
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 format-collect = "allow"

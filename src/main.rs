@@ -22,6 +22,9 @@ use std::{
     thread,
 };
 
+mod resolve_project_file;
+use resolve_project_file::resolve_project_file;
+
 #[derive(Clone, Default)]
 struct Options {
     max_width: Option<usize>,
@@ -131,9 +134,9 @@ is converted to options of the form:
 
 where `M` is `N` minus the sum of the widths of the indentation,
 the `//!` or `///` syntax, and the space that might follow that
-syntax. If the current directory contains a rustfmt.toml file
-with a `max_width` key, the `--max-width` option is applied
-automatically.
+syntax. If a rustfmt.toml file with a `max_width` key is found
+in the current directory or a parent directory, the
+`--max-width` option is applied automatically.
 
 rustdoc-prettier supports glob patterns. Example:
 
@@ -151,10 +154,10 @@ fn help() -> ! {
 }
 
 fn rustfmt_max_width() -> Result<Option<usize>> {
-    let path = Path::new("rustfmt.toml");
-    if !path.try_exists()? {
+    let current_dir = env::current_dir()?;
+    let Some(path) = resolve_project_file(&current_dir)? else {
         return Ok(None);
-    }
+    };
     let contents = read_to_string(path)?;
     let table = contents.parse::<toml::Table>()?;
     let Some(max_width) = table.get("max_width") else {
