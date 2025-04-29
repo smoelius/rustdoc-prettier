@@ -20,6 +20,7 @@ toml = "0.8"
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 format-collect = "allow"
+missing-errors-doc = "allow"
 struct-field-names = "allow"
 
 [[workspace.metadata.dylint.libraries]]
