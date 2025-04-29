@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+- FEATURE: Search parent directories for a rustfmt.toml file ([6cce81f](https://github.com/smoelius/rustdoc-prettier/commit/6cce81f36a307dd66e7c40427f2ce7fde0a4c2b3))
+- Upgrade `rewriter` to version 0.2 ([878f571](https://github.com/smoelius/rustdoc-prettier/commit/878f571073d5075122778fda12aaced76939adf5))
+
 ## 0.3.0
 
 - FEATURE: Spawn no more than `std::threads::available_parallelism() - 1` threads at any time ([#32](https://github.com/smoelius/rustdoc-prettier/pull/32))
