@@ -4,9 +4,6 @@ use tempfile::tempdir;
 #[test]
 fn clippy() {
     Command::new("cargo")
-        // smoelius: Remove `CARGO` environment variable to work around:
-        // https://github.com/rust-lang/rust/pull/131729
-        .env_remove("CARGO")
         .args([
             "+nightly",
             "clippy",
