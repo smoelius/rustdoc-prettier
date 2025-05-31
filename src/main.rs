@@ -186,7 +186,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         .collect::<Vec<_>>();
 
     let (sender, receiver) = sync_channel::<Child>(*N_THREADS);
-    let handle = thread::spawn(move || prettier_spawner(&opts, characteristics, &sender));
+    let handle = thread::spawn(move || prettier_spawner(opts, characteristics, &sender));
 
     let mut rewriter = Rewriter::new(&contents);
 
@@ -285,9 +285,9 @@ fn preprocess_line(line: &str) -> (Option<Characteristics>, &str) {
 ///
 /// Note that `characteristics` influences the arguments passed to `prettier`. So the `prettier`
 /// instances must be consumed in the same order in which they were spawned.
-#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::needless_pass_by_value, clippy::unnecessary_wraps)]
 fn prettier_spawner(
-    opts: &Options,
+    opts: Options,
     characteristics: Vec<Characteristics>,
     sender: &SyncSender<Child>,
 ) -> Result<()> {
