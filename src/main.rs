@@ -79,13 +79,16 @@ fn main() -> Result<()> {
     // smoelius: Split off `opts.patterns` so that its contents are not cloned before each call to
     // `thread::spawn`.
     for pattern in opts.patterns.split_off(0) {
+        let mut found = false;
         for result in glob(&pattern)? {
             let path = result?;
             let backup = Backup::new(&path)?;
             backups.push(backup);
             let opts = opts.clone();
             handles.push(thread::spawn(|| format_file(opts, path)));
+            found = true;
         }
+        ensure!(found, "found no files matching pattern: {pattern}");
     }
 
     for handle in handles {
