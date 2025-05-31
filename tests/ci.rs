@@ -1,5 +1,13 @@
 use assert_cmd::Command;
+use std::env::remove_var;
 use tempfile::tempdir;
+
+#[ctor::ctor]
+fn initialize() {
+    unsafe {
+        remove_var("CARGO_TERM_COLOR");
+    }
+}
 
 #[test]
 fn clippy() {
