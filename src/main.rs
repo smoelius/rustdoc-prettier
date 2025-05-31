@@ -31,6 +31,8 @@ struct Options {
     max_width: Option<usize>,
     /// Source files to format
     patterns: Vec<String>,
+    /// Whether `args` includes `--check` and thus files should not be overwritten
+    check: bool,
     /// Arguments to pass to `prettier`
     args: Vec<String>,
 }
@@ -118,6 +120,9 @@ fn process_args() -> Result<Options> {
         } else if arg.to_lowercase().ends_with(".rs") {
             opts.patterns.push(arg);
         } else {
+            if arg == "--check" {
+                opts.check = true;
+            }
             opts.args.push(arg);
         }
     }
@@ -177,6 +182,7 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
 }
 
 fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
+    let check = opts.check;
     let contents = read_to_string(&path)?;
 
     let chunks = chunk(&contents);
@@ -212,7 +218,9 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
 
     let contents = rewriter.contents();
 
-    write(path, contents)?;
+    if !check {
+        write(path, contents)?;
+    }
 
     join_anyhow(handle)?;
 
