@@ -6,8 +6,14 @@ use std::{
     sync::Mutex,
 };
 
+mod util;
+
+static MUTEX: Mutex<()> = Mutex::new(());
+
 #[test]
 fn dogfood() {
+    let _lock = MUTEX.lock().unwrap();
+
     preserves_cleanliness("dogfood", || {
         let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
         command.arg("src/**/*.rs");
@@ -16,13 +22,19 @@ fn dogfood() {
     });
 }
 
-static MUTEX: Mutex<()> = Mutex::new(());
-
-fn preserves_cleanliness(test_name: &str, f: impl FnOnce()) {
+#[test]
+fn dogfood_with_check() {
     let _lock = MUTEX.lock().unwrap();
 
+    let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+    command.args(["src/**/*.rs", "--check"]);
+    let status = command.status().unwrap();
+    assert!(status.success());
+}
+
+fn preserves_cleanliness(test_name: &str, f: impl FnOnce()) {
     // smoelius: Do not skip tests when running on GitHub.
-    if var("CI").is_err() && dirty().is_some() {
+    if var("CI").is_err() && util::dirty(".").is_some() {
         #[allow(clippy::explicit_write)]
         writeln!(
             stderr(),
@@ -34,20 +46,7 @@ fn preserves_cleanliness(test_name: &str, f: impl FnOnce()) {
 
     f();
 
-    if let Some(stdout) = dirty() {
+    if let Some(stdout) = util::dirty(".") {
         panic!("{}", stdout);
-    }
-}
-
-fn dirty() -> Option<String> {
-    let output = Command::new("git")
-        .args(["diff", "--exit-code"])
-        .output()
-        .unwrap();
-
-    if output.status.success() {
-        None
-    } else {
-        Some(String::from_utf8(output.stdout).unwrap())
     }
 }

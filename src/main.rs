@@ -27,8 +27,13 @@ use resolve_project_file::resolve_project_file;
 
 #[derive(Clone, Default)]
 struct Options {
+    /// Preferred maximum width of a formatted line
     max_width: Option<usize>,
+    /// Source files to format
     patterns: Vec<String>,
+    /// Whether `args` includes `--check` and thus files should not be overwritten
+    check: bool,
+    /// Arguments to pass to `prettier`
     args: Vec<String>,
 }
 
@@ -76,13 +81,16 @@ fn main() -> Result<()> {
     // smoelius: Split off `opts.patterns` so that its contents are not cloned before each call to
     // `thread::spawn`.
     for pattern in opts.patterns.split_off(0) {
+        let mut found = false;
         for result in glob(&pattern)? {
             let path = result?;
             let backup = Backup::new(&path)?;
             backups.push(backup);
             let opts = opts.clone();
             handles.push(thread::spawn(|| format_file(opts, path)));
+            found = true;
         }
+        ensure!(found, "found no files matching pattern: {pattern}");
     }
 
     for handle in handles {
@@ -112,6 +120,9 @@ fn process_args() -> Result<Options> {
         } else if arg.to_lowercase().ends_with(".rs") {
             opts.patterns.push(arg);
         } else {
+            if arg == "--check" {
+                opts.check = true;
+            }
             opts.args.push(arg);
         }
     }
@@ -171,6 +182,7 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
 }
 
 fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
+    let check = opts.check;
     let contents = read_to_string(&path)?;
 
     let chunks = chunk(&contents);
@@ -180,7 +192,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         .collect::<Vec<_>>();
 
     let (sender, receiver) = sync_channel::<Child>(*N_THREADS);
-    let handle = thread::spawn(move || prettier_spawner(&opts, characteristics, &sender));
+    let handle = thread::spawn(move || prettier_spawner(opts, characteristics, &sender));
 
     let mut rewriter = Rewriter::new(&contents);
 
@@ -206,7 +218,9 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
 
     let contents = rewriter.contents();
 
-    write(path, contents)?;
+    if !check {
+        write(path, contents)?;
+    }
 
     join_anyhow(handle)?;
 
@@ -279,9 +293,9 @@ fn preprocess_line(line: &str) -> (Option<Characteristics>, &str) {
 ///
 /// Note that `characteristics` influences the arguments passed to `prettier`. So the `prettier`
 /// instances must be consumed in the same order in which they were spawned.
-#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::needless_pass_by_value, clippy::unnecessary_wraps)]
 fn prettier_spawner(
-    opts: &Options,
+    opts: Options,
     characteristics: Vec<Characteristics>,
     sender: &SyncSender<Child>,
 ) -> Result<()> {

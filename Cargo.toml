@@ -17,6 +17,7 @@ rewriter = "0.2"
 toml = "0.8"
 
 [dev-dependencies]
+predicates = "3.0"
 similar-asserts = "1.7"
 tempfile = "3.20"
 
@@ -24,7 +25,12 @@ tempfile = "3.20"
 pedantic = { level = "warn", priority = -1 }
 format-collect = "allow"
 missing-errors-doc = "allow"
+missing-panics-doc = "allow"
 struct-field-names = "allow"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ["cfg(dylint_lib, values(any()))"]
 
 [[workspace.metadata.dylint.libraries]]
 git = "https://github.com/trailofbits/dylint"
