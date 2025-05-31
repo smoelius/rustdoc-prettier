@@ -1,3 +1,6 @@
+#![cfg_attr(dylint_lib = "general", allow(crate_wide_allow))]
+#![allow(dead_code)]
+
 use anyhow::{Result, bail, ensure};
 use std::{
     path::{Path, PathBuf},
@@ -23,4 +26,18 @@ pub fn copy_into(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<()> {
     let status = command.status()?;
     ensure!(status.success(), "command failed: {command:?}");
     Ok(())
+}
+
+pub fn dirty(path: impl AsRef<Path>) -> Option<String> {
+    let output = Command::new("git")
+        .args(["diff", "--exit-code"])
+        .arg(path.as_ref())
+        .output()
+        .unwrap();
+
+    if output.status.success() {
+        None
+    } else {
+        Some(String::from_utf8(output.stdout).unwrap())
+    }
 }
