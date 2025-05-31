@@ -6,6 +6,8 @@ use std::{
     sync::Mutex,
 };
 
+mod util;
+
 #[test]
 fn dogfood() {
     preserves_cleanliness("dogfood", || {
@@ -22,7 +24,7 @@ fn preserves_cleanliness(test_name: &str, f: impl FnOnce()) {
     let _lock = MUTEX.lock().unwrap();
 
     // smoelius: Do not skip tests when running on GitHub.
-    if var("CI").is_err() && dirty().is_some() {
+    if var("CI").is_err() && util::dirty(".").is_some() {
         #[allow(clippy::explicit_write)]
         writeln!(
             stderr(),
@@ -34,20 +36,7 @@ fn preserves_cleanliness(test_name: &str, f: impl FnOnce()) {
 
     f();
 
-    if let Some(stdout) = dirty() {
+    if let Some(stdout) = util::dirty(".") {
         panic!("{}", stdout);
-    }
-}
-
-fn dirty() -> Option<String> {
-    let output = Command::new("git")
-        .args(["diff", "--exit-code"])
-        .output()
-        .unwrap();
-
-    if output.status.success() {
-        None
-    } else {
-        Some(String::from_utf8(output.stdout).unwrap())
     }
 }
