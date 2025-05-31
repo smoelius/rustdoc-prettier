@@ -27,8 +27,11 @@ use resolve_project_file::resolve_project_file;
 
 #[derive(Clone, Default)]
 struct Options {
+    /// Preferred maximum width of a formatted line
     max_width: Option<usize>,
+    /// Source files to format
     patterns: Vec<String>,
+    /// Arguments to pass to `prettier`
     args: Vec<String>,
 }
 
