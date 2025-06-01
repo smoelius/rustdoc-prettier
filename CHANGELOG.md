@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- FEATURE: Raise an error when no matching files are found ([#64](https://github.com/smoelius/rustdoc-prettier/pull/64))
+- FEATURE: Properly handle `--check` ([#61](https://github.com/smoelius/rustdoc-prettier/pull/61))
+
 ## 0.4.0
 
 - FEATURE: Search parent directories for a rustfmt.toml file ([6cce81f](https://github.com/smoelius/rustdoc-prettier/commit/6cce81f36a307dd66e7c40427f2ce7fde0a4c2b3))
