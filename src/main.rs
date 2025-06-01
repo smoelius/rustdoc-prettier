@@ -2,8 +2,7 @@
 //!
 //! Format `//!` and `///` comments with prettier
 
-use anyhow::{Result, anyhow, bail, ensure};
-use assert_cmd::output::OutputError;
+use anyhow::{Context, Result, anyhow, bail, ensure};
 use glob::glob;
 use itertools::Itertools;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
@@ -201,7 +200,13 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
             bail!("Ctrl-C detected");
         }
 
-        let docs = format_chunk(&receiver, &chunk)?;
+        let docs = format_chunk(&receiver, &chunk).with_context(|| {
+            format!(
+                "failed to format {}:{:?}",
+                path.as_ref().display(),
+                chunk.lines
+            )
+        })?;
 
         let start = LineColumn {
             line: chunk.lines.start,
@@ -342,8 +347,12 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
     let output = prettier.wait_with_output()?;
     ensure!(
         output.status.success(),
-        "prettier exited abnormally: {}",
-        OutputError::new(output)
+        "prettier exited {}",
+        output
+            .status
+            .code()
+            .map(|code| format!("with code {code}"))
+            .unwrap_or(String::from("abnormally"))
     );
 
     decrement_used_parallelism();
