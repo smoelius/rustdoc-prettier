@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+
+- Improve error messages; don't require `assert_cmd` to install ([#66](https://github.com/smoelius/rustdoc-prettier/pull/66))
+
 ## 0.5.0
 
 - FEATURE: Raise an error when no matching files are found ([#64](https://github.com/smoelius/rustdoc-prettier/pull/64))
