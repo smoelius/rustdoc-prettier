@@ -3,13 +3,13 @@
 //! Format `//!` and `///` comments with prettier
 
 use anyhow::{Context, Result, anyhow, bail, ensure};
-use glob::glob;
+use glob::{GlobError, glob};
 use itertools::Itertools;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
     env,
     fs::{read_to_string, write},
-    io::Write,
+    io::{self, Write},
     ops::Range,
     path::Path,
     process::{Child, Command, Stdio, exit},
@@ -23,6 +23,27 @@ use std::{
 
 mod resolve_project_file;
 use resolve_project_file::resolve_project_file;
+
+trait IgnoreNotFound<T> {
+    fn ignore_not_found(self, what: impl Fn() -> String) -> io::Result<Option<T>>;
+}
+
+impl<T> IgnoreNotFound<T> for io::Result<T> {
+    fn ignore_not_found(self, what: impl Fn() -> String) -> io::Result<Option<T>> {
+        match self {
+            Ok(value) => Ok(Some(value)),
+            Err(error) => {
+                if error.kind() == io::ErrorKind::NotFound {
+                    let what = what();
+                    eprintln!("Warning: failed while {what}: {error}");
+                    Ok(None)
+                } else {
+                    Err(error)
+                }
+            }
+        }
+    }
+}
 
 #[derive(Clone, Default)]
 struct Options {
@@ -82,8 +103,17 @@ fn main() -> Result<()> {
     for pattern in opts.patterns.split_off(0) {
         let mut found = false;
         for result in glob(&pattern)? {
-            let path = result?;
-            let backup = Backup::new(&path)?;
+            let Some(path) = result
+                .map_err(GlobError::into_error)
+                .ignore_not_found(|| format!("reading `{pattern}`"))?
+            else {
+                continue;
+            };
+            let Some(backup) = Backup::new(&path)
+                .ignore_not_found(|| format!("backing up `{}`", path.display()))?
+            else {
+                continue;
+            };
             backups.push(backup);
             let opts = opts.clone();
             handles.push(thread::spawn(|| format_file(opts, path)));
@@ -96,7 +126,9 @@ fn main() -> Result<()> {
         join_anyhow(handle)?;
     }
     for mut backup in backups {
-        backup.disable()?;
+        let _: Option<()> = backup
+            .disable()
+            .ignore_not_found(|| String::from("disabling backup"))?;
     }
     Ok(())
 }
@@ -182,7 +214,11 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
 
 fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let check = opts.check;
-    let contents = read_to_string(&path)?;
+    let Some(contents) = read_to_string(&path)
+        .ignore_not_found(|| format!("reading `{}`", path.as_ref().display()))?
+    else {
+        return Ok(());
+    };
 
     let chunks = chunk(&contents);
     let characteristics = chunks
