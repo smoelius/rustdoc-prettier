@@ -45,6 +45,10 @@ References
 - https://prettier.io/docs/en/options.html
 - https://rust-lang.github.io/rustfmt/?version=master&search=
 
+## "No such file or directory" errors
+
+`rustdoc-prettier` tries to tolerate "No such file or directory" errors by emitting a warning and continuing. Such errors can arise when `rustdoc-prettier` tries to format a file that was removed by another process, for example.
+
 ## Notes
 
 `rustdoc-prettier` parses source code manually. It does not use [`rustdoc-json`]. There are two reasons for this:
