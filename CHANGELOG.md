@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- FEATURE: Tolerate [`NotFound`](https://doc.rust-lang.org/std/io/enum.ErrorKind.html#variant.NotFound) errors ([#77](https://github.com/smoelius/rustdoc-prettier/pull/77) and [#79](https://github.com/smoelius/rustdoc-prettier/pull/79))
+
 ## 0.5.1
 
 - Improve error messages; don't require `assert_cmd` to install ([#66](https://github.com/smoelius/rustdoc-prettier/pull/66))
