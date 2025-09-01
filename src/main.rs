@@ -260,7 +260,8 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let contents = rewriter.contents();
 
     if !check {
-        write(path, contents)?;
+        write(&path, contents)
+            .ignore_not_found(|| format!("writing `{}`", path.as_ref().display()))?;
     }
 
     join_anyhow(handle)?;
