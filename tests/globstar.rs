@@ -1,6 +1,7 @@
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use elaborate::std::fs::read_to_string_wc;
 use predicates::prelude::*;
-use std::{fs::read_to_string, process::Command};
+use std::process::Command;
 
 mod util;
 
@@ -13,7 +14,7 @@ fn globstar() {
     command.current_dir(&path);
     command.assert().success();
 
-    let contents = read_to_string(path.join("src/needs_formatting/mod.rs")).unwrap();
+    let contents = read_to_string_wc(path.join("src/needs_formatting/mod.rs")).unwrap();
     assert_eq!("//! Needs formatting\n", contents);
 }
 

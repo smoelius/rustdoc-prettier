@@ -3,13 +3,20 @@
 //! Format `//!` and `///` comments with prettier
 
 use anyhow::{Context, Result, anyhow, bail, ensure};
+use elaborate::std::{
+    env::current_dir_wc,
+    fs::read_to_string_wc,
+    io::WriteContext,
+    process::{ChildContext, CommandContext, ExitStatusContext},
+    thread::available_parallelism_wc,
+};
 use glob::{GlobError, glob};
 use itertools::Itertools;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
     env,
     fs::{read_to_string, write},
-    io::{self, Write},
+    io,
     ops::Range,
     path::Path,
     process::{Child, Command, Stdio, exit},
@@ -80,10 +87,7 @@ enum DocKind {
 static N_THREADS: LazyLock<usize> = LazyLock::new(|| {
     std::cmp::max(
         1,
-        thread::available_parallelism()
-            .unwrap()
-            .get()
-            .saturating_sub(1),
+        available_parallelism_wc().unwrap().get().saturating_sub(1),
     )
 });
 
@@ -196,11 +200,11 @@ fn help() -> ! {
 }
 
 fn rustfmt_max_width() -> Result<Option<usize>> {
-    let current_dir = env::current_dir()?;
+    let current_dir = current_dir_wc()?;
     let Some(path) = resolve_project_file(&current_dir)? else {
         return Ok(None);
     };
-    let contents = read_to_string(path)?;
+    let contents = read_to_string_wc(path)?;
     let table = contents.parse::<toml::Table>()?;
     let Some(max_width) = table.get("max_width") else {
         return Ok(None);
@@ -214,6 +218,7 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
 
 fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let check = opts.check;
+    #[allow(clippy::disallowed_methods)]
     let Some(contents) = read_to_string(&path)
         .ignore_not_found(|| format!("reading `{}`", path.as_ref().display()))?
     else {
@@ -260,6 +265,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let contents = rewriter.contents();
 
     if !check {
+        #[allow(clippy::disallowed_methods)]
         write(&path, contents)
             .ignore_not_found(|| format!("writing `{}`", path.as_ref().display()))?;
     }
@@ -357,7 +363,7 @@ fn prettier_spawner(
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
-        let child = command.spawn().expect("failed to spawn `prettier`");
+        let child = command.spawn_wc().expect("failed to spawn `prettier`");
         // smoelius: The next send should never fail. The channel is created with a capacity of
         // `N_THREADS`, and no more than `N_THREADS` children exist at any time.
         sender.try_send(child).unwrap_or_else(|error| {
@@ -378,16 +384,16 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
         .take()
         .ok_or_else(|| anyhow!("child has no stdin"))?;
 
-    stdin.write_all(chunk.docs.as_bytes())?;
+    stdin.write_all_wc(chunk.docs.as_bytes())?;
     drop(stdin);
 
-    let output = prettier.wait_with_output()?;
+    let output = prettier.wait_with_output_wc()?;
     ensure!(
         output.status.success(),
         "prettier exited {}",
         output
             .status
-            .code()
+            .code_wc()
             .map(|code| format!("with code {code}"))
             .unwrap_or(String::from("abnormally"))
     );
@@ -444,11 +450,11 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
 
 #[cfg(test)]
 mod test {
-    use std::fs::read_to_string;
+    use elaborate::std::fs::read_to_string_wc;
 
     #[test]
     fn readme_contains_help() {
-        let readme = read_to_string("README.md").unwrap();
+        let readme = read_to_string_wc("README.md").unwrap();
         // smoelius: Skip the first two lines, which give the usage.
         let help = super::HELP
             .split_inclusive('\n')

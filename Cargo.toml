@@ -10,6 +10,7 @@ repository = "https://github.com/smoelius/rustdoc-prettier"
 [dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }
 ctrlc = "3.4"
+elaborate = "0.1.0"
 glob = "0.3"
 itertools = "0.14"
 rewriter = "0.2"

@@ -1,4 +1,8 @@
-#![allow(clippy::io_other_error, clippy::unnecessary_debug_formatting)]
+#![allow(
+    clippy::io_other_error,
+    clippy::disallowed_methods,
+    clippy::unnecessary_debug_formatting
+)]
 
 // smoelius: `resolve_project_file` is based on the function of the same name from:
 // https://github.com/rust-lang/rustfmt/blob/b23b69900eab1260be510b2bd8922f4b6de6cf1e/src/config/mod.rs#L313-L354
