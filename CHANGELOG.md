@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1
+
+- Ignore one more `NotFound` error ([#77](https://github.com/smoelius/rustdoc-prettier/pull/77) was incomplete) ([#84](https://github.com/smoelius/rustdoc-prettier/pull/84))
+- Use `elaborate` for better error reporting ([#85](https://github.com/smoelius/rustdoc-prettier/pull/85))
+
 ## 0.6.0
 
 - FEATURE: Tolerate [`NotFound`](https://doc.rust-lang.org/std/io/enum.ErrorKind.html#variant.NotFound) errors ([#77](https://github.com/smoelius/rustdoc-prettier/pull/77) and [#79](https://github.com/smoelius/rustdoc-prettier/pull/79))
