@@ -1,7 +1,8 @@
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use elaborate::std::fs::read_to_string_wc;
 use predicates::prelude::*;
 use similar_asserts::SimpleDiff;
-use std::{fs::read_to_string, process::Command};
+use std::process::Command;
 
 mod util;
 
@@ -16,8 +17,8 @@ fn rustfmt_toml_in_parent_directory() {
     command.current_dir(&src_dir);
     command.assert().success();
 
-    let contents_expected = read_to_string(src_dir.join("main.expected.rs")).unwrap();
-    let contents_actual = read_to_string(src_dir.join("main.rs")).unwrap();
+    let contents_expected = read_to_string_wc(src_dir.join("main.expected.rs")).unwrap();
+    let contents_actual = read_to_string_wc(src_dir.join("main.rs")).unwrap();
     assert!(
         contents_expected == contents_actual,
         "{}",

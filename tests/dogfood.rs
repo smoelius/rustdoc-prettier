@@ -1,6 +1,6 @@
 use assert_cmd::cargo::CommandCargoExt;
+use elaborate::std::{env::var_wc, process::CommandContext};
 use std::{
-    env::var,
     io::{Write, stderr},
     process::Command,
     sync::Mutex,
@@ -17,7 +17,7 @@ fn dogfood() {
     preserves_cleanliness("dogfood", || {
         let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
         command.arg("src/**/*.rs");
-        let status = command.status().unwrap();
+        let status = command.status_wc().unwrap();
         assert!(status.success());
     });
 }
@@ -28,13 +28,13 @@ fn dogfood_with_check() {
 
     let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
     command.args(["src/**/*.rs", "--check"]);
-    let status = command.status().unwrap();
+    let status = command.status_wc().unwrap();
     assert!(status.success());
 }
 
 fn preserves_cleanliness(test_name: &str, f: impl FnOnce()) {
     // smoelius: Do not skip tests when running on GitHub.
-    if var("CI").is_err() && util::dirty(".").is_some() {
+    if var_wc("CI").is_err() && util::dirty(".").is_some() {
         #[allow(clippy::explicit_write)]
         writeln!(
             stderr(),

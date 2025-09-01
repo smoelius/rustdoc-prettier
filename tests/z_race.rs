@@ -1,7 +1,11 @@
 use anyhow::Result;
 use assert_cmd::cargo::CommandCargoExt;
+use elaborate::std::{
+    fs::{create_dir_wc, write_wc},
+    process::CommandContext,
+};
 use std::{
-    fs::{create_dir, remove_dir_all, write},
+    fs::remove_dir_all,
     io,
     path::{Path, PathBuf},
     process::Command,
@@ -34,6 +38,7 @@ fn race() {
                 // smoelius: `subdir` could be non-empty because `rustdoc-prettier` wrote into it
                 // while it was being removed. Keep trying until the directory is removed
                 // successfully.
+                #[allow(clippy::disallowed_methods)]
                 match remove_dir_all(&subdir) {
                     Ok(()) => break,
                     Err(error) => {
@@ -50,7 +55,7 @@ fn race() {
         let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
         command.arg("**/*.rs");
         command.current_dir(&tempdir);
-        let status = command.status().unwrap();
+        let status = command.status_wc().unwrap();
         assert!(status.success());
     }
 
@@ -60,14 +65,14 @@ fn race() {
 }
 
 fn create_source_file(dir: &Path) -> Result<()> {
-    write(dir.join("a.rs"), "///  A comment in need of formatting")?;
+    write_wc(dir.join("a.rs"), "///  A comment in need of formatting")?;
     Ok(())
 }
 
 fn create_subdir_with_source_file(dir: &Path) -> Result<PathBuf> {
     let subdir = dir.join("subdir");
-    create_dir(&subdir)?;
-    write(
+    create_dir_wc(&subdir)?;
+    write_wc(
         subdir.join("b.rs"),
         "///  Another comment in need of formatting",
     )?;
