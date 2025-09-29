@@ -21,7 +21,7 @@ assert_cmd = "2.0"
 ctor = "0.5"
 predicates = "3.1"
 similar-asserts = "1.7"
-tempfile = "3.22"
+tempfile = "3.23"
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
