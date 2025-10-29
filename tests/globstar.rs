@@ -1,7 +1,6 @@
-use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use assert_cmd::cargo::cargo_bin_cmd;
 use elaborate::std::fs::read_to_string_wc;
 use predicates::prelude::*;
-use std::process::Command;
 
 mod util;
 
@@ -9,7 +8,7 @@ mod util;
 fn globstar() {
     let (_tempdir, path) = util::copy_into_tempdir("fixtures/globstar").unwrap();
 
-    let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
     command.arg("**/*.rs");
     command.current_dir(&path);
     command.assert().success();
@@ -20,7 +19,7 @@ fn globstar() {
 
 #[test]
 fn globstar_with_check() {
-    let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
     command.args(["**/*.rs", "--check"]);
     command.current_dir("fixtures/globstar");
     command.assert().failure().stderr(predicate::eq(

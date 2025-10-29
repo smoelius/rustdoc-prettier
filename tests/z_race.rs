@@ -1,14 +1,10 @@
 use anyhow::Result;
-use assert_cmd::cargo::CommandCargoExt;
-use elaborate::std::{
-    fs::{create_dir_wc, write_wc},
-    process::CommandContext,
-};
+use assert_cmd::cargo::cargo_bin_cmd;
+use elaborate::std::fs::{create_dir_wc, write_wc};
 use std::{
     fs::remove_dir_all,
     io,
     path::{Path, PathBuf},
-    process::Command,
     sync::atomic::{AtomicBool, Ordering},
     thread,
 };
@@ -52,11 +48,10 @@ fn race() {
 
     for i in 0..N_ITERATIONS {
         dbg!(i);
-        let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+        let mut command = cargo_bin_cmd!("rustdoc-prettier");
         command.arg("**/*.rs");
         command.current_dir(&tempdir);
-        let status = command.status_wc().unwrap();
-        assert!(status.success());
+        command.assert().success();
     }
 
     EXIT.store(true, Ordering::SeqCst);

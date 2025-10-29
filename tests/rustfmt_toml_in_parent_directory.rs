@@ -1,8 +1,7 @@
-use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use assert_cmd::cargo::cargo_bin_cmd;
 use elaborate::std::fs::read_to_string_wc;
 use predicates::prelude::*;
 use similar_asserts::SimpleDiff;
-use std::process::Command;
 
 mod util;
 
@@ -12,7 +11,7 @@ fn rustfmt_toml_in_parent_directory() {
 
     let src_dir = path.join("src");
 
-    let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
     command.arg("main.rs");
     command.current_dir(&src_dir);
     command.assert().success();
@@ -28,7 +27,7 @@ fn rustfmt_toml_in_parent_directory() {
 
 #[test]
 fn rustfmt_toml_in_parent_directory_with_check() {
-    let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
     command.args(["main.rs", "--check"]);
     command.current_dir("fixtures/clippy_issue_14274/src");
     command.assert().failure().stderr(predicate::eq(
