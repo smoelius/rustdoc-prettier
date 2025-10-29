@@ -19,7 +19,7 @@ use std::{
     io,
     ops::Range,
     path::Path,
-    process::{Child, Command, Stdio, exit},
+    process::{Child, Command, ExitStatus, Stdio, exit},
     sync::{
         Condvar, LazyLock, Mutex, MutexGuard,
         atomic::{AtomicBool, Ordering},
@@ -99,6 +99,8 @@ fn main() -> Result<()> {
     if opts.max_width.is_none() {
         opts.max_width = rustfmt_max_width()?;
     }
+
+    check_if_prettier_is_installed().with_context(|| "failed to run `prettier`")?;
 
     let mut backups = Vec::new();
     let mut handles = Vec::new();
@@ -214,6 +216,22 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
     };
     let max_width = usize::try_from(max_width_i64)?;
     Ok(Some(max_width))
+}
+
+fn check_if_prettier_is_installed() -> Result<()> {
+    match Command::new("prettier")
+        .arg("-v")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status_wc()
+    {
+        Ok(status) if status.success() => Ok(()),
+        Ok(status) => Err(anyhow!(
+            "`prettier -v` exited {}",
+            exit_status_to_string(status)
+        )),
+        Err(error) => Err(error),
+    }
 }
 
 fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
@@ -391,11 +409,7 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
     ensure!(
         output.status.success(),
         "prettier exited {}",
-        output
-            .status
-            .code_wc()
-            .map(|code| format!("with code {code}"))
-            .unwrap_or(String::from("abnormally"))
+        exit_status_to_string(output.status)
     );
 
     decrement_used_parallelism();
@@ -439,6 +453,13 @@ fn postprocess_docs(characteristics: Characteristics, docs: &str) -> String {
             )
         })
         .collect()
+}
+
+fn exit_status_to_string(status: ExitStatus) -> String {
+    status
+        .code_wc()
+        .map(|code| format!("with code {code}"))
+        .unwrap_or(String::from("abnormally"))
 }
 
 fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
