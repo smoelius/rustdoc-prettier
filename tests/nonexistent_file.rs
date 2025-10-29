@@ -1,13 +1,12 @@
-use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;
-use std::process::Command;
 use tempfile::tempdir;
 
 #[test]
 fn nonexistent_file() {
     let tempdir = tempdir().unwrap();
 
-    let mut command = Command::cargo_bin("rustdoc-prettier").unwrap();
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
     command.arg("nonexistent_file.rs");
     command.current_dir(&tempdir);
     command.assert().failure().stderr(predicate::eq(
