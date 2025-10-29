@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0
+
+- Adjust help message ([#94](https://github.com/smoelius/rustdoc-prettier/pull/94))
+- FEATURE: Check whether `prettier` is installed before attempting to run it ([#95](https://github.com/smoelius/rustdoc-prettier/pull/95))
+
 ## 0.6.1
 
 - Ignore one more `NotFound` error ([#77](https://github.com/smoelius/rustdoc-prettier/pull/77) was incomplete) ([#84](https://github.com/smoelius/rustdoc-prettier/pull/84))
