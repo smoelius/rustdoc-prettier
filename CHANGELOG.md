@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- Exit gracefully when `try_send` fails ([#102](https://github.com/smoelius/rustdoc-prettier/pull/102))
+
 ## 0.7.0
 
 - Adjust help message ([#94](https://github.com/smoelius/rustdoc-prettier/pull/94))
