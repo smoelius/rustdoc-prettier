@@ -382,14 +382,13 @@ fn prettier_spawner(
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         let child = command.spawn_wc().expect("failed to spawn `prettier`");
-        // smoelius: The next send should never fail. The channel is created with a capacity of
-        // `N_THREADS`, and no more than `N_THREADS` children exist at any time.
-        sender.try_send(child).unwrap_or_else(|error| {
-            panic!(
-                "tried to send more than {} children on channel: {error:?}",
-                *N_THREADS
-            )
-        });
+        // smoelius: The `sender` channel is created with a capacity of `N_THREADS`, and no more
+        // than `N_THREADS` children exist at any time. For these reasons, the next `try_send`
+        // should fail only if prettier exits. In that case, we should unwind gracefully so that an
+        // error message returned elsewhere can be displayed to the user.
+        sender
+            .try_send(child)
+            .with_context(|| "failed to send to prettier")?;
         *used_parallelism += 1;
     }
     Ok(())
