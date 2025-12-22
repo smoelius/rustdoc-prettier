@@ -1,4 +1,5 @@
 use assert_cmd::Command;
+use elaborate::std::process::CommandContext;
 use std::env::remove_var;
 use tempfile::tempdir;
 
@@ -10,12 +11,35 @@ fn initialize() {
 }
 
 #[test]
+fn clippy() {
+    Command::new("cargo")
+        .args([
+            "+nightly",
+            "clippy",
+            "--all-targets",
+            "--",
+            "--deny=warnings",
+        ])
+        .assert()
+        .success();
+}
+
+#[test]
 fn dylint() {
     Command::new("cargo")
         .args(["dylint", "--all", "--", "--all-targets"])
         .env("DYLINT_RUSTFLAGS", "--deny=warnings")
         .assert()
         .success();
+}
+
+#[test]
+fn elaborate_disallowed_methods() {
+    let status = elaborate::disallowed_methods()
+        .arg("--all-targets")
+        .status_wc()
+        .unwrap();
+    assert!(status.success());
 }
 
 #[test]
