@@ -14,14 +14,14 @@ elaborate = "0.2.1"
 glob = "0.3"
 itertools = "0.14"
 rewriter = "0.2"
-toml = "0.9"
+toml = "1.0"
 
 [dev-dependencies]
 assert_cmd = "2.1"
 ctor = "0.6"
 predicates = "3.1"
 similar-asserts = "1.7"
-tempfile = "3.24"
+tempfile = "3.25"
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
