@@ -1,4 +1,5 @@
 #![allow(
+    clippy::collapsible_match,
     clippy::io_other_error,
     clippy::disallowed_methods,
     clippy::unnecessary_debug_formatting
