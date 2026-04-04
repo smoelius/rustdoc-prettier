@@ -20,7 +20,7 @@ toml = "1.1"
 assert_cmd = "2.2"
 ctor = "0.8"
 predicates = "3.1"
-similar-asserts = "1.7"
+similar-asserts = "2.0"
 tempfile = "3.25"
 
 [lints.clippy]
