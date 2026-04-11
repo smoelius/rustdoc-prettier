@@ -18,7 +18,7 @@ toml = "1.1"
 
 [dev-dependencies]
 assert_cmd = "2.2"
-ctor = "0.8"
+ctor = "0.9"
 predicates = "3.1"
 similar-asserts = "2.0"
 tempfile = "3.25"
