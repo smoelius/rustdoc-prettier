@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.2
+
+- Dependency updates
+  - `elaborate` upgraded to version 1
+  - `toml` upgraded to version 1
+
 ## 0.7.1
 
 - Exit gracefully when `try_send` fails ([#102](https://github.com/smoelius/rustdoc-prettier/pull/102))
