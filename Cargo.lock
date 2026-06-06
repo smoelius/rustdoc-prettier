@@ -130,9 +130,9 @@ checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
 
 [[package]]
 name = "elaborate"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7c19531a77feb3eef0ad0c09b466bdfec1c0a4bd516a04f4df93c6c332d4aa4"
+checksum = "364647699002e13a22fea1aeec23441e46d9c14cf1e0a53bdb08a5460a92f015"
 dependencies = [
  "anyhow",
 ]
