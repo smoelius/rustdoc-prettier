@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.3
+
+- Dependency updates
+  - `itertools` upgraded to version 0.15
+
 ## 0.7.2
 
 - Dependency updates
