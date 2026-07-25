@@ -235,6 +235,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
 
 [[package]]
+name = "methodify"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dca426ea8d6b948787612db0364f0433f8e9a2c33a2c4c255bd0dc4f27455d0d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "nix"
 version = "0.31.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -384,6 +395,7 @@ dependencies = [
  "elaborate",
  "glob",
  "itertools",
+ "methodify",
  "predicates",
  "rewriter",
  "similar-asserts",
