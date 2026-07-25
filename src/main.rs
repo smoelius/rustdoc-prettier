@@ -33,7 +33,10 @@ mod resolve_project_file;
 use resolve_project_file::resolve_project_file;
 
 #[methodify]
-fn ignore_not_found<T>(result: io::Result<T>, what: impl Fn() -> String) -> io::Result<Option<T>> {
+fn ignore_not_found<T>(
+    result: io::Result<T>,
+    what: impl FnOnce() -> String,
+) -> io::Result<Option<T>> {
     match result {
         Ok(value) => Ok(Some(value)),
         Err(error) => {
