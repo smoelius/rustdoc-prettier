@@ -12,6 +12,7 @@ use elaborate::std::{
 };
 use glob::{GlobError, glob};
 use itertools::Itertools;
+use methodify::methodify;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
     env,
@@ -31,22 +32,17 @@ use std::{
 mod resolve_project_file;
 use resolve_project_file::resolve_project_file;
 
-trait IgnoreNotFound<T> {
-    fn ignore_not_found(self, what: impl Fn() -> String) -> io::Result<Option<T>>;
-}
-
-impl<T> IgnoreNotFound<T> for io::Result<T> {
-    fn ignore_not_found(self, what: impl Fn() -> String) -> io::Result<Option<T>> {
-        match self {
-            Ok(value) => Ok(Some(value)),
-            Err(error) => {
-                if error.kind() == io::ErrorKind::NotFound {
-                    let what = what();
-                    eprintln!("Warning: failed while {what}: {error}");
-                    Ok(None)
-                } else {
-                    Err(error)
-                }
+#[methodify]
+fn ignore_not_found<T>(result: io::Result<T>, what: impl Fn() -> String) -> io::Result<Option<T>> {
+    match result {
+        Ok(value) => Ok(Some(value)),
+        Err(error) => {
+            if error.kind() == io::ErrorKind::NotFound {
+                let what = what();
+                eprintln!("Warning: failed while {what}: {error}");
+                Ok(None)
+            } else {
+                Err(error)
             }
         }
     }
