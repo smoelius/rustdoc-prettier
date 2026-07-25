@@ -110,7 +110,7 @@ fn main() -> Result<()> {
         let mut found = false;
         for result in glob(&pattern)? {
             let Some(path) = result
-                .map_err(GlobError::into_error)
+                .map_err(GlobError::into)
                 .ignore_not_found(|| format!("reading `{pattern}`"))?
             else {
                 continue;
