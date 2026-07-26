@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4
+
+- Eliminate use of deprecated `glob` method ([ab6a5ea](https://github.com/smoelius/rustdoc-prettier/commit/ab6a5eaee584ce2d3bb03e6dbb580f026c694883))
+
 ## 0.7.3
 
 - Dependency updates
