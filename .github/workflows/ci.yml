@@ -35,7 +35,7 @@ jobs:
 
       - uses: taiki-e/install-action@v2
         with:
-          tool: cargo-udeps
+          tool: cargo-dylint, dylint-link, cargo-udeps
 
       - name: Install tools
         run: |
@@ -43,7 +43,6 @@ jobs:
           rustup update
           rustup install nightly
           rustup component add clippy --toolchain nightly
-          cargo install cargo-dylint dylint-link || true
           cargo install cargo-supply-chain       || true
           cargo install unset                    || true
 
