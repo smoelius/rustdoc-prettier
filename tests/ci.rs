@@ -7,7 +7,7 @@ use elaborate::std::{
 use similar_asserts::SimpleDiff;
 use std::{
     path::Path,
-    process::{Command, ExitStatus},
+    process::{Command, ExitStatus, Stdio},
     str::FromStr,
 };
 use tempfile::tempdir;
@@ -31,6 +31,8 @@ fn dylint() {
     Command::new("cargo")
         .args(["dylint", "--all", "--", "--all-targets"])
         .env("DYLINT_RUSTFLAGS", "--deny=warnings")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .assert()
         .success();
 }
