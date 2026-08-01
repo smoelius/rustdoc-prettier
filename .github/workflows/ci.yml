@@ -50,4 +50,4 @@ jobs:
           cargo install unset                    || true
 
       - name: Test
-        run: cargo test --config "target.'cfg(all())'.runner = 'unset'"
+        run: cargo test --config "target.'cfg(all())'.runner = 'unset'" -- --nocapture
