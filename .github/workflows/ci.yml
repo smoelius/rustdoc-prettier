@@ -33,7 +33,7 @@ jobs:
             ~/.cargo/git/checkouts/
             ~/.dylint_drivers/
             ~/.rustup/toolchains/
-            target/dylint
+            target/dylint/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - uses: taiki-e/install-action@v2.85.4
