@@ -70,6 +70,7 @@ fn markdown_link_check() {
         .assert()
         .success();
 }
+
 #[test]
 fn supply_chain() {
     let mut command = Command::new("cargo");
