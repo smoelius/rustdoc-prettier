@@ -14,6 +14,14 @@ const N_ITERATIONS: usize = 100;
 
 static EXIT: AtomicBool = AtomicBool::new(false);
 
+// Verify that `rustdoc-prettier` succeeds even when the files matched by its glob patterns are
+// removed while it runs. One thread repeatedly creates and removes a subdirectory containing a
+// source file, while the main thread repeatedly formats `**/*.rs`. A file that vanishes this way
+// should be warned about and skipped, not treated as an error.
+//
+// The motivation for this test is https://github.com/smoelius/rustdoc-prettier/issues/59. Dylint's
+// CI ran `rustdoc-prettier './**/*.rs'` while Cargo was creating and removing files under `target`,
+// so paths returned by `glob` could vanish before they were read.
 #[test]
 fn race() {
     let tempdir = tempdir().unwrap();
