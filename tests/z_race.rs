@@ -1,5 +1,5 @@
 use anyhow::Result;
-use assert_cmd::cargo::cargo_bin_cmd;
+use assert_cmd::{assert::OutputAssertExt, cargo::cargo_bin_cmd};
 use elaborate::std::fs::{create_dir_wc, write_wc};
 use std::{
     fs::remove_dir_all,
@@ -46,7 +46,7 @@ fn race() {
                 match remove_dir_all(&subdir) {
                     Ok(()) => break,
                     Err(error) => {
-                        eprintln!("{error}");
+                        eprintln!("Warning: observed {error} while removing directory");
                         assert_eq!(io::ErrorKind::DirectoryNotEmpty, error.kind());
                     }
                 }
@@ -59,7 +59,9 @@ fn race() {
         let mut command = cargo_bin_cmd!("rustdoc-prettier");
         command.arg("**/*.rs");
         command.current_dir(&tempdir);
-        command.assert().success();
+        let output = command.output().unwrap();
+        eprint!("{}", String::from_utf8_lossy(&output.stderr));
+        output.assert().success();
     }
 
     EXIT.store(true, Ordering::SeqCst);
