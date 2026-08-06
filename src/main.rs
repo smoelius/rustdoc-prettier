@@ -96,6 +96,7 @@ fn main() -> Result<()> {
                 continue;
             };
             let Some(backup) = Backup::new(&path)
+                .treat_einval_as_not_found_on_macos()
                 .ignore_not_found(|| format!("backing up `{}`", path.display()))?
             else {
                 continue;
@@ -265,12 +266,35 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     if !check {
         #[allow(clippy::disallowed_methods)]
         write(&path, contents)
+            .treat_einval_as_not_found_on_macos()
             .ignore_not_found(|| format!("writing `{}`", path.as_ref().display()))?;
     }
 
     join_anyhow(handle)?;
 
     Ok(())
+}
+
+/// Warns about and converts a macOS `EINVAL` error into an [`io::ErrorKind::NotFound`] error
+///
+/// Creating a file in a directory that is concurrently removed fails with `ENOENT` on Linux, but
+/// can fail with `EINVAL` on macOS.
+#[methodify]
+fn treat_einval_as_not_found_on_macos<T>(result: io::Result<T>) -> io::Result<T> {
+    match result {
+        Ok(value) => Ok(value),
+        Err(error) => {
+            // `tempfile` wraps the underlying error in a type that reports neither its
+            // `raw_os_error` nor it as a `source`. But the error's kind is preserved, and `EINVAL`
+            // maps to `InvalidInput`.
+            if cfg!(target_os = "macos") && error.kind() == io::ErrorKind::InvalidInput {
+                eprintln!("Warning: treating {error} as not found");
+                Err(io::Error::new(io::ErrorKind::NotFound, error))
+            } else {
+                Err(error)
+            }
+        }
+    }
 }
 
 #[methodify]
