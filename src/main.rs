@@ -32,25 +32,6 @@ use std::{
 mod resolve_project_file;
 use resolve_project_file::resolve_project_file;
 
-#[methodify]
-fn ignore_not_found<T>(
-    result: io::Result<T>,
-    what: impl FnOnce() -> String,
-) -> io::Result<Option<T>> {
-    match result {
-        Ok(value) => Ok(Some(value)),
-        Err(error) => {
-            if error.kind() == io::ErrorKind::NotFound {
-                let what = what();
-                eprintln!("Warning: failed while {what}: {error}");
-                Ok(None)
-            } else {
-                Err(error)
-            }
-        }
-    }
-}
-
 #[derive(Clone, Default)]
 struct Options {
     /// Preferred maximum width of a formatted line
@@ -290,6 +271,25 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     join_anyhow(handle)?;
 
     Ok(())
+}
+
+#[methodify]
+fn ignore_not_found<T>(
+    result: io::Result<T>,
+    what: impl FnOnce() -> String,
+) -> io::Result<Option<T>> {
+    match result {
+        Ok(value) => Ok(Some(value)),
+        Err(error) => {
+            if error.kind() == io::ErrorKind::NotFound {
+                let what = what();
+                eprintln!("Warning: failed while {what}: {error}");
+                Ok(None)
+            } else {
+                Err(error)
+            }
+        }
+    }
 }
 
 fn chunk(contents: &str) -> Vec<Chunk> {
