@@ -406,6 +406,7 @@ dependencies = [
  "rewriter",
  "serde_json",
  "similar-asserts",
+ "supply_chain",
  "tempfile",
  "toml",
 ]
@@ -492,6 +493,17 @@ checksum = "997e6ca38e97437973fc9f7f50a50d1274cacd874341a4960fea90067291038c"
 dependencies = [
  "console",
  "similar",
+]
+
+[[package]]
+name = "supply_chain"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f546043b51d411ae5ffeb7dee19bcedf3f2b647714fda6c1a3b0e667981e3c15"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "similar-asserts",
 ]
 
 [[package]]
