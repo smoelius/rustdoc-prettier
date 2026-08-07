@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.5
+
+- Be more tolerant of errors on macOS ([41b049f](https://github.com/smoelius/rustdoc-prettier/commit/41b049f580e9c24bbcff11ca516040fa51fee3ee))
+- Dependency updates
+  - `elaborate` upgraded to version 2.0
+
 ## 0.7.4
 
 - Eliminate use of deprecated `glob` method ([ab6a5ea](https://github.com/smoelius/rustdoc-prettier/commit/ab6a5eaee584ce2d3bb03e6dbb580f026c694883))
