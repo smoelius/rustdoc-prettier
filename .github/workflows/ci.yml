@@ -17,8 +17,31 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  check-up-to-dateness:
+    outputs:
+      is-up-to-date: ${{ steps.main.outputs.is-up-to-date }}
+
     runs-on: ubuntu-latest
+
+    steps:
+      - id: main
+        uses: trailofbits/check-up-to-dateness@v2
+
+  test:
+    needs: [check-up-to-dateness]
+
+    if: needs.check-up-to-dateness.outputs.is-up-to-date != 'true'
+
+    strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
+      matrix:
+        environment: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.environment }}
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v7
@@ -38,7 +61,7 @@ jobs:
 
       - uses: taiki-e/install-action@v2.85.4
         with:
-          tool: cargo-dylint, dylint-link, cargo-udeps
+          tool: cargo-udeps
 
       - name: Install tools
         run: |
@@ -46,8 +69,25 @@ jobs:
           rustup update
           rustup install nightly
           rustup component add clippy --toolchain nightly
+          cargo install cargo-dylint dylint-link || true
           cargo install cargo-supply-chain       || true
           cargo install unset                    || true
 
       - name: Test
         run: cargo test --config "target.'cfg(all())'.runner = 'unset'" -- --nocapture
+
+  all-checks:
+    needs: [test]
+
+    # smoelius: From "Defining prerequisite jobs"
+    # (https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs):
+    # > If you would like a job to run even if a job it is dependent on did not succeed, use the
+    # > `always()` conditional expression in `jobs.<job_id>.if`.
+    if: ${{ always() }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check results
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
