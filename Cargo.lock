@@ -403,6 +403,7 @@ dependencies = [
  "itertools",
  "methodify",
  "predicates",
+ "regex",
  "rewriter",
  "serde_json",
  "similar-asserts",

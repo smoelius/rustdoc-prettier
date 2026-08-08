@@ -20,6 +20,7 @@ toml = "1.1"
 [dev-dependencies]
 assert_cmd = "2.2"
 predicates = "3.1"
+regex = "1.13"
 serde_json = "1.0"
 similar-asserts = "2.0"
 supply_chain = "0.1.0"
