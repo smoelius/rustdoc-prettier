@@ -441,6 +441,13 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
     Ok(postprocess_docs(chunk.characteristics, &docs))
 }
 
+fn exit_status_to_string(status: ExitStatus) -> String {
+    status
+        .code_wc()
+        .map(|code| format!("with code {code}"))
+        .unwrap_or(String::from("abnormally"))
+}
+
 static USED_PARALLELISM: Mutex<usize> = Mutex::new(0);
 static USED_PARALLELISM_CONDVAR: Condvar = Condvar::new();
 
@@ -475,13 +482,6 @@ fn postprocess_docs(characteristics: Characteristics, docs: &str) -> String {
             )
         })
         .collect()
-}
-
-fn exit_status_to_string(status: ExitStatus) -> String {
-    status
-        .code_wc()
-        .map(|code| format!("with code {code}"))
-        .unwrap_or(String::from("abnormally"))
 }
 
 fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
