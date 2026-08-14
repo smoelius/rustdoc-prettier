@@ -20,7 +20,7 @@ use std::{
     io,
     ops::Range,
     path::Path,
-    process::{Child, Command, ExitStatus, Stdio, exit},
+    process::{Child, Command, ExitStatus, Stdio},
     sync::{
         Condvar, LazyLock, Mutex, MutexGuard,
         atomic::{AtomicBool, Ordering},
@@ -105,7 +105,9 @@ static CTRLC: AtomicBool = AtomicBool::new(false);
 
 fn main() -> Result<()> {
     ctrlc::set_handler(|| CTRLC.store(true, Ordering::SeqCst))?;
-    let mut opts = process_args()?;
+    let Some(mut opts) = process_args()? else {
+        return Ok(());
+    };
     if opts.max_width.is_none() {
         opts.max_width = rustfmt_max_width()?;
     }
@@ -150,12 +152,13 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn process_args() -> Result<Options> {
+fn process_args() -> Result<Option<Options>> {
     let mut opts = Options::default();
     let mut iter = env::args().skip(1);
     while let Some(arg) = iter.next() {
         if arg == "--help" || arg == "-h" {
-            help();
+            println!("{HELP}");
+            return Ok(None);
         } else if arg == "--max-width" {
             let Some(arg) = iter.next() else {
                 bail!("missing argument to --max--width");
@@ -165,6 +168,9 @@ fn process_args() -> Result<Options> {
         } else if let Some(arg) = arg.strip_prefix("--max-width=") {
             let width = arg.parse()?;
             opts.max_width = Some(width);
+        } else if arg == "--version" || arg == "-V" {
+            println!("rustdoc-prettier {}", env!("CARGO_PKG_VERSION"));
+            return Ok(None);
         } else if arg.to_lowercase().ends_with(".rs") {
             opts.patterns.push(arg);
         } else {
@@ -174,12 +180,7 @@ fn process_args() -> Result<Options> {
             opts.args.push(arg);
         }
     }
-    Ok(opts)
-}
-
-fn help() -> ! {
-    println!("{HELP}");
-    exit(0);
+    Ok(Some(opts))
 }
 
 fn rustfmt_max_width() -> Result<Option<usize>> {
