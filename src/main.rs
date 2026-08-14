@@ -163,9 +163,9 @@ is converted to options of the form:
 
 where `M` is `N` minus the sum of the widths of the indentation,
 the `//!` or `///` syntax, and the space that might follow that
-syntax. If a rustfmt.toml file with a `max_width` key is found
-in a current or parent directory, the `--max-width` option is
-applied automatically.
+syntax. If a rustfmt.toml file is found in a current or parent
+directory, and the file has a `max_width` or `comment_width`
+key, the `--max-width` option is applied automatically.
 
 rustdoc-prettier supports glob patterns. Example:
 
@@ -189,11 +189,14 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
     };
     let contents = read_to_string_wc(path)?;
     let table = contents.parse::<toml::Table>()?;
-    let Some(max_width) = table.get("max_width") else {
+    let Some(max_width) = table
+        .get("max_width")
+        .or_else(|| table.get("comment_width"))
+    else {
         return Ok(None);
     };
     let Some(max_width_i64) = max_width.as_integer() else {
-        bail!("`max_width` is not an integer");
+        bail!("`max_width`/`comment_width` is not an integer");
     };
     let max_width = usize::try_from(max_width_i64)?;
     Ok(Some(max_width))

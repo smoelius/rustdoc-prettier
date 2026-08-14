@@ -17,9 +17,8 @@ use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-/// Try to find a project file in the given directory and its parents.
-/// Returns the path of the nearest project file if one exists,
-/// or `None` if no project file was found.
+/// Try to find a project file in the given directory and its parents. Returns the path of the
+/// nearest project file if one exists, or `None` if no project file was found.
 pub fn resolve_project_file(dir: &Path) -> Result<Option<PathBuf>, Error> {
     let mut current = if dir.is_relative() {
         env::current_dir()?.join(dir)
