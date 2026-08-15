@@ -3,4 +3,4 @@ name = "clippy_issue_14274"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace]
