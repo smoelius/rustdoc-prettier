@@ -32,6 +32,36 @@ use std::{
 mod resolve_project_file;
 use resolve_project_file::resolve_project_file;
 
+#[rustfmt::skip]
+const HELP: &str = "\
+Usage: rustdoc-prettier [ARGS]
+
+Arguments ending with `.rs` are considered source files and are
+formatted. All other arguments are forwarded to `prettier`, with
+one exception. An option of the form:
+
+    ---max-width <N>
+
+is converted to options of the form:
+
+    --prose-wrap always --print-width <M>
+
+where `M` is `N` minus the sum of the widths of the indentation,
+the `//!` or `///` syntax, and the space that might follow that
+syntax. If a rustfmt.toml file is found in a current or parent
+directory, and the file has a `max_width` or `comment_width`
+key, the `--max-width` option is applied automatically.
+
+rustdoc-prettier supports glob patterns. Example:
+
+    rustdoc-prettier '**/*.rs'
+
+References
+
+- https://prettier.io/docs/en/options.html
+- https://rust-lang.github.io/rustfmt/?version=master&search=
+";
+
 #[derive(Clone, Default)]
 struct Options {
     /// Preferred maximum width of a formatted line
@@ -146,36 +176,6 @@ fn process_args() -> Result<Options> {
     }
     Ok(opts)
 }
-
-#[rustfmt::skip]
-const HELP: &str = "\
-Usage: rustdoc-prettier [ARGS]
-
-Arguments ending with `.rs` are considered source files and are
-formatted. All other arguments are forwarded to `prettier`, with
-one exception. An option of the form:
-
-    ---max-width <N>
-
-is converted to options of the form:
-
-    --prose-wrap always --print-width <M>
-
-where `M` is `N` minus the sum of the widths of the indentation,
-the `//!` or `///` syntax, and the space that might follow that
-syntax. If a rustfmt.toml file is found in a current or parent
-directory, and the file has a `max_width` or `comment_width`
-key, the `--max-width` option is applied automatically.
-
-rustdoc-prettier supports glob patterns. Example:
-
-    rustdoc-prettier '**/*.rs'
-
-References
-
-- https://prettier.io/docs/en/options.html
-- https://rust-lang.github.io/rustfmt/?version=master&search=
-";
 
 fn help() -> ! {
     println!("{HELP}");
