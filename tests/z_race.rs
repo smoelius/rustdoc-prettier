@@ -59,7 +59,7 @@ fn race() {
         let mut command = cargo_bin_cmd!("rustdoc-prettier");
         command.arg("**/*.rs");
         command.current_dir(&tempdir);
-        let output = command.output().unwrap();
+        let output = command.unwrap();
         eprint!("{}", String::from_utf8_lossy(&output.stderr));
         output.assert().success();
     }
