@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0
+
+- BREAKING: Honor `comment_width` fields in `rustfmt.toml` files ([53be083](https://github.com/smoelius/rustdoc-prettier/commit/53be083d5c39f677be08cf5b89c48c9ad4d79b10))
+- Support `--version` ([a3baf13](https://github.com/smoelius/rustdoc-prettier/commit/a3baf132821c2a715bbdf1db096562d97ebc9314))
+- Fix `rustfmt` links ([9117652](https://github.com/smoelius/rustdoc-prettier/commit/9117652b4d3fbb75b3bacc33c7e9da99a7cbb488))
+
 ## 0.7.5
 
 - Be more tolerant of errors on macOS ([41b049f](https://github.com/smoelius/rustdoc-prettier/commit/41b049f580e9c24bbcff11ca516040fa51fee3ee))
