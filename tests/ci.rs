@@ -1,3 +1,5 @@
+// necessist: skip-file
+
 use assert_cmd::assert::OutputAssertExt;
 use elaborate::std::{
     fs::{read_dir_wc, read_to_string_wc},
