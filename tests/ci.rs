@@ -1,6 +1,12 @@
 use assert_cmd::assert::OutputAssertExt;
-use elaborate::std::process::CommandContext;
-use std::process::{Command, Stdio};
+use elaborate::std::{
+    fs::{read_dir_wc, read_to_string_wc},
+    process::CommandContext,
+};
+use std::{
+    process::{Command, Stdio},
+    str::FromStr,
+};
 
 #[test]
 fn clippy() {
@@ -25,6 +31,22 @@ fn dylint() {
         .stderr(Stdio::inherit())
         .assert()
         .success();
+}
+
+#[test]
+fn each_fixture_is_in_its_own_workspace() {
+    for result in read_dir_wc("fixtures").unwrap() {
+        let entry = result.unwrap();
+        let path = entry.path();
+        let cargo_toml_path = path.join("Cargo.toml");
+        let contents = read_to_string_wc(cargo_toml_path).unwrap();
+        let table = toml::Table::from_str(&contents).unwrap();
+        assert!(
+            table.get("workspace").is_some(),
+            "failed for: {}",
+            path.display()
+        );
+    }
 }
 
 #[test]
