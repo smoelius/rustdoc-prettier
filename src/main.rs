@@ -59,7 +59,7 @@ rustdoc-prettier supports glob patterns. Example:
 References
 
 - https://prettier.io/docs/en/options.html
-- https://rust-lang.github.io/rustfmt/?version=master&search=
+- https://rust-lang.github.io/rustfmt/?version=main&search=
 ";
 
 #[derive(Clone, Default)]
