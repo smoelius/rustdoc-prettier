@@ -61,9 +61,9 @@ dependencies = [
 
 [[package]]
 name = "bstr"
-version = "1.13.0"
+version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f7dc094d718f2e1c1559ad110e27eeaae14a5465d3d56dd6dbd793079fbd530"
+checksum = "6bb31b46c14244e20ee9984b11bf5c992b91fb6939fea616e3512c8baecdbe5f"
 dependencies = [
  "memchr",
  "regex-automata",
@@ -130,9 +130,9 @@ checksum = "9e5e8f6c15a24b9a3ee5efec809ccd006d3b30e8b3bb63c39af737c7f87daa1d"
 
 [[package]]
 name = "elaborate"
-version = "2.0.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebccd51c5c9671251371078938192e3b0a51d5a2f22c754a372fc0477fcd4fa6"
+checksum = "9b2d4bb47301a282d44806532e32ba9cc771a5891a938237a0f7a14b855b3f1b"
 dependencies = [
  "anyhow",
 ]
@@ -498,9 +498,9 @@ dependencies = [
 
 [[package]]
 name = "supply_chain"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f546043b51d411ae5ffeb7dee19bcedf3f2b647714fda6c1a3b0e667981e3c15"
+checksum = "1e18c7619d13ca46c62abd2cc31786f4b86d264bfbf2c96ec8d043e5c0af469b"
 dependencies = [
  "anyhow",
  "serde_json",
