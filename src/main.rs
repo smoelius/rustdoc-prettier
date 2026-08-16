@@ -236,8 +236,8 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         .map(|chunk| chunk.characteristics)
         .collect::<Vec<_>>();
 
-    let (sender, receiver) = sync_channel::<Child>(*N_THREADS);
-    let handle = thread::spawn(move || prettier_spawner(opts, characteristics, &sender));
+    let (sender, receiver) = sync_channel::<Prettier>(*N_THREADS);
+    let handle = thread::spawn(move || prettier_spawner(&opts, &characteristics, &sender));
 
     let mut rewriter = Rewriter::new(&contents);
 
@@ -383,18 +383,23 @@ fn preprocess_line(line: &str) -> (Option<Characteristics>, &str) {
     (Some(characteristics), &suffix[i..])
 }
 
+struct Prettier {
+    child: Child,
+    decrement_used_parallelism: DecrementUsedParallelism,
+}
+
 /// Spawns a `prettier` instance for each element of `characteristics`, and sends the instance over
 /// `sender`
 ///
 /// Note that `characteristics` influences the arguments passed to `prettier`. So the `prettier`
 /// instances must be consumed in the same order in which they were spawned.
-#[allow(clippy::needless_pass_by_value, clippy::unnecessary_wraps)]
+#[allow(clippy::unnecessary_wraps)]
 fn prettier_spawner(
-    opts: Options,
-    characteristics: Vec<Characteristics>,
-    sender: &SyncSender<Child>,
+    opts: &Options,
+    characteristics: &[Characteristics],
+    sender: &SyncSender<Prettier>,
 ) -> Result<()> {
-    for characteristics in characteristics {
+    for &characteristics in characteristics {
         let mut used_parallelism = lock_used_parallelism_for_incrementing();
         let mut command = Command::new("prettier");
         command.arg("--parser=markdown");
@@ -415,17 +420,25 @@ fn prettier_spawner(
         // than `N_THREADS` children exist at any time. For these reasons, the next `try_send`
         // should fail only if prettier exits. In that case, we should unwind gracefully so that an
         // error message returned elsewhere can be displayed to the user.
-        sender
-            .try_send(child)
-            .with_context(|| "failed to send to prettier")?;
         *used_parallelism += 1;
+        let prettier = Prettier {
+            child,
+            decrement_used_parallelism: DecrementUsedParallelism,
+        };
+        drop(used_parallelism);
+        sender
+            .try_send(prettier)
+            .with_context(|| "failed to send to prettier")?;
     }
     Ok(())
 }
 
-fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
-    let mut prettier = receiver.recv()?;
-    let mut stdin = prettier
+fn format_chunk(receiver: &Receiver<Prettier>, chunk: &Chunk) -> Result<String> {
+    let Prettier {
+        mut child,
+        decrement_used_parallelism,
+    } = receiver.recv()?;
+    let mut stdin = child
         .stdin
         .take()
         .ok_or_else(|| anyhow!("child has no stdin"))?;
@@ -433,14 +446,14 @@ fn format_chunk(receiver: &Receiver<Child>, chunk: &Chunk) -> Result<String> {
     stdin.write_all_wc(chunk.docs.as_bytes())?;
     drop(stdin);
 
-    let output = prettier.wait_with_output_wc()?;
+    let output = child.wait_with_output_wc()?;
     ensure!(
         output.status.success(),
         "prettier exited {}",
         exit_status_to_string(output.status)
     );
 
-    decrement_used_parallelism();
+    drop(decrement_used_parallelism);
 
     let docs = String::from_utf8(output.stdout)?;
 
@@ -464,6 +477,14 @@ fn lock_used_parallelism_for_incrementing() -> MutexGuard<'static, usize> {
             *used_parallelism >= *N_THREADS
         })
         .unwrap()
+}
+
+struct DecrementUsedParallelism;
+
+impl Drop for DecrementUsedParallelism {
+    fn drop(&mut self) {
+        decrement_used_parallelism();
+    }
 }
 
 fn decrement_used_parallelism() {
@@ -499,37 +520,63 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
 
 #[cfg(test)]
 mod test {
-    use super::{Options, USED_PARALLELISM, chunk, format_chunk, prettier_spawner};
+    use super::{
+        Chunk, HELP, Options, Prettier, USED_PARALLELISM, chunk, format_chunk, prettier_spawner,
+    };
     use elaborate::std::fs::read_to_string_wc;
-    use std::sync::mpsc::sync_channel;
+    use std::sync::{
+        Mutex,
+        mpsc::{Receiver, sync_channel},
+    };
 
     #[test]
     fn readme_contains_help() {
         let readme = read_to_string_wc("README.md").unwrap();
         // smoelius: Skip the first two lines, which give the usage.
-        let help = super::HELP
-            .split_inclusive('\n')
-            .skip(2)
-            .collect::<String>();
+        let help = HELP.split_inclusive('\n').skip(2).collect::<String>();
         assert!(readme.contains(&help));
     }
 
+    // smoelius: `used_parallelism_is_decremented_when_format_chunk_fails` and
+    // `used_parallelism_is_decremented_when_queued_prettier_is_dropped` both use
+    // `USED_PARALLELISM`. Ensure the two tests do not interfere with each other.
+    static USED_PARALLELISM_TEST_MUTEX: Mutex<()> = Mutex::new(());
+
     #[test]
     fn used_parallelism_is_decremented_when_format_chunk_fails() {
+        let _guard = USED_PARALLELISM_TEST_MUTEX.lock().unwrap();
         assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
 
+        let chunk = chunk("///  Needs formatting\n").remove(0);
+        let receiver = spawn_prettier_instance(&chunk);
+
+        assert!(format_chunk(&receiver, &chunk).is_err());
+        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
+    }
+
+    #[test]
+    fn used_parallelism_is_decremented_when_queued_prettier_is_dropped() {
+        let _guard = USED_PARALLELISM_TEST_MUTEX.lock().unwrap();
+        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
+
+        let chunk = chunk("///  Needs formatting\n").remove(0);
+        let receiver = spawn_prettier_instance(&chunk);
+
+        // Dropping a queued child must decrement `USED_PARALLELISM`.
+        drop(receiver);
+        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
+    }
+
+    /// Spawns a `prettier` instance to check `chunk` and returns a [`Receiver`] from which it can
+    /// be retrieved.
+    fn spawn_prettier_instance(chunk: &Chunk) -> Receiver<Prettier> {
         let opts = Options {
             args: vec![String::from("--check")],
             ..Options::default()
         };
-        let chunk = chunk("///  Needs formatting\n").remove(0);
         let (sender, receiver) = sync_channel(1);
-
-        // `format_chunk` expects to be sent a child and for `USED_PARALLELISM` to have already been
-        // incremented.
-        prettier_spawner(opts, vec![chunk.characteristics], &sender).unwrap();
-
-        assert!(format_chunk(&receiver, &chunk).is_err());
-        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
+        prettier_spawner(&opts, &[chunk.characteristics], &sender).unwrap();
+        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 1);
+        receiver
     }
 }
