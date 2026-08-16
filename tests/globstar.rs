@@ -37,3 +37,16 @@ Caused by:
     // smoelius: Additional check for sanity.
     assert!(util::dirty("fixtures/globstar").is_none());
 }
+
+#[test]
+fn overlapping_patterns() {
+    let (_tempdir, path) = util::copy_into_tempdir("fixtures/globstar").unwrap();
+
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
+    command.args(["**/*.rs", "**/*.rs"]);
+    command.current_dir(&path);
+    command.assert().success();
+
+    let contents = read_to_string_wc(path.join("src/needs_formatting/mod.rs")).unwrap();
+    assert_eq!("//! Needs formatting\n", contents);
+}
