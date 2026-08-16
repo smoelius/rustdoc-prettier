@@ -499,7 +499,9 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
 
 #[cfg(test)]
 mod test {
+    use super::{Options, USED_PARALLELISM, chunk, format_chunk, prettier_spawner};
     use elaborate::std::fs::read_to_string_wc;
+    use std::sync::mpsc::sync_channel;
 
     #[test]
     fn readme_contains_help() {
@@ -510,5 +512,24 @@ mod test {
             .skip(2)
             .collect::<String>();
         assert!(readme.contains(&help));
+    }
+
+    #[test]
+    fn used_parallelism_is_decremented_when_format_chunk_fails() {
+        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
+
+        let opts = Options {
+            args: vec![String::from("--check")],
+            ..Options::default()
+        };
+        let chunk = chunk("///  Needs formatting\n").remove(0);
+        let (sender, receiver) = sync_channel(1);
+
+        // `format_chunk` expects to be sent a child and for `USED_PARALLELISM` to have already been
+        // incremented.
+        prettier_spawner(opts, vec![chunk.characteristics], &sender).unwrap();
+
+        assert!(format_chunk(&receiver, &chunk).is_err());
+        assert_eq!(*USED_PARALLELISM.lock().unwrap(), 0);
     }
 }
