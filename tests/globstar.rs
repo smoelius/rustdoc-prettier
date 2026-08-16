@@ -15,6 +15,9 @@ fn globstar() {
 
     let contents = read_to_string_wc(path.join("src/needs_formatting/mod.rs")).unwrap();
     assert_eq!("//! Needs formatting\n", contents);
+
+    let contents = read_to_string_wc(path.join("src/.hidden.rs")).unwrap();
+    assert_eq!("//!  Needs formatting\n", contents);
 }
 
 #[test]
