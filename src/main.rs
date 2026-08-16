@@ -10,7 +10,7 @@ use elaborate::std::{
     process::{ChildContext, CommandContext, ExitStatusContext},
     thread::available_parallelism_wc,
 };
-use glob::{GlobError, glob};
+use glob::{GlobError, MatchOptions, glob_with};
 use itertools::Itertools;
 use methodify::methodify;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
@@ -120,7 +120,11 @@ fn main() -> Result<()> {
     // `thread::spawn`.
     for pattern in opts.patterns.split_off(0) {
         let mut found = false;
-        for result in glob(&pattern)? {
+        let match_options = MatchOptions {
+            require_literal_leading_dot: true,
+            ..MatchOptions::new()
+        };
+        for result in glob_with(&pattern, match_options)? {
             let Some(path) = result
                 .map_err(GlobError::into)
                 .ignore_not_found(|| format!("failed while reading `{pattern}`"))?
