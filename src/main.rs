@@ -123,13 +123,13 @@ fn main() -> Result<()> {
         for result in glob(&pattern)? {
             let Some(path) = result
                 .map_err(GlobError::into)
-                .ignore_not_found(|| format!("reading `{pattern}`"))?
+                .ignore_not_found(|| format!("failed while reading `{pattern}`"))?
             else {
                 continue;
             };
             let Some(backup) = Backup::new(&path)
                 .treat_einval_as_not_found_on_macos()
-                .ignore_not_found(|| format!("backing up `{}`", path.display()))?
+                .ignore_not_found(|| format!("failed while backing up `{}`", path.display()))?
             else {
                 continue;
             };
@@ -147,7 +147,7 @@ fn main() -> Result<()> {
     for mut backup in backups {
         let _: Option<()> = backup
             .disable()
-            .ignore_not_found(|| String::from("disabling backup"))?;
+            .ignore_not_found(|| String::from("failed while disabling backup"))?;
     }
     Ok(())
 }
@@ -185,7 +185,9 @@ fn process_args() -> Result<Option<Options>> {
 
 fn rustfmt_max_width() -> Result<Option<usize>> {
     let current_dir = current_dir_wc()?;
-    let Some(path) = resolve_project_file(&current_dir)? else {
+    let Some(path) =
+        resolve_project_file(&current_dir).with_context(|| "failed to find `rustfmt.toml` file")?
+    else {
         return Ok(None);
     };
     let contents = read_to_string_wc(path)?;
@@ -223,7 +225,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let check = opts.check;
     #[allow(clippy::disallowed_methods)]
     let Some(contents) = read_to_string(&path)
-        .ignore_not_found(|| format!("reading `{}`", path.as_ref().display()))?
+        .ignore_not_found(|| format!("failed while reading `{}`", path.as_ref().display()))?
     else {
         return Ok(());
     };
@@ -271,7 +273,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         #[allow(clippy::disallowed_methods)]
         write(&path, contents)
             .treat_einval_as_not_found_on_macos()
-            .ignore_not_found(|| format!("writing `{}`", path.as_ref().display()))?;
+            .ignore_not_found(|| format!("failed while writing `{}`", path.as_ref().display()))?;
     }
 
     join_anyhow(handle)?;
@@ -304,17 +306,17 @@ fn treat_einval_as_not_found_on_macos<T>(result: io::Result<T>) -> io::Result<T>
 #[methodify]
 fn ignore_not_found<T>(
     result: io::Result<T>,
-    what: impl FnOnce() -> String,
-) -> io::Result<Option<T>> {
+    context: impl FnOnce() -> String,
+) -> Result<Option<T>> {
     match result {
         Ok(value) => Ok(Some(value)),
         Err(error) => {
+            let context = context();
             if error.kind() == io::ErrorKind::NotFound {
-                let what = what();
-                eprintln!("Warning: failed while {what}: {error}");
+                eprintln!("Warning: {context}: {error}");
                 Ok(None)
             } else {
-                Err(error)
+                Err(error).context(context)
             }
         }
     }

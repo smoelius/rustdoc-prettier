@@ -1,7 +1,7 @@
 #![cfg_attr(dylint_lib = "general", allow(crate_wide_allow))]
 #![allow(dead_code)]
 
-use anyhow::{Result, ensure};
+use anyhow::{Context, Result, ensure};
 use elaborate::std::{path::PathContext, process::CommandContext};
 use std::{
     path::{Path, PathBuf},
@@ -12,7 +12,7 @@ use tempfile::{TempDir, tempdir};
 pub fn copy_into_tempdir(from: impl AsRef<Path>) -> Result<(TempDir, PathBuf)> {
     let from = from.as_ref();
     let filename = from.file_name_wc()?;
-    let tempdir = tempdir()?;
+    let tempdir = tempdir().with_context(|| "failed to create temporary directory")?;
     copy_into(from, &tempdir)?;
     let path_buf = tempdir.path().join(filename);
     Ok((tempdir, path_buf))
