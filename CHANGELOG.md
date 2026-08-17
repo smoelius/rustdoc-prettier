@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0
+
+- Emit more informative error messages ([8222a7c](https://github.com/smoelius/rustdoc-prettier/commit/8222a7c99ff385bd4f41a3738b255986657e0c8c))
+- Fix a bug where formatting errors could cause a deadlock ([8978c40](https://github.com/smoelius/rustdoc-prettier/commit/8978c4047d55063ec2b27d8592ddc97cce0aca97))
+- BREAKING: No longer format hidden files ([6df3907](https://github.com/smoelius/rustdoc-prettier/commit/6df3907df210826524e0f6ada758d917cdd776f0))
+- Dependency updates
+  - `rewriter` upgraded to version 1.0
+
 ## 1.0.0
 
 - BREAKING: Honor `comment_width` fields in `rustfmt.toml` files ([53be083](https://github.com/smoelius/rustdoc-prettier/commit/53be083d5c39f677be08cf5b89c48c9ad4d79b10))
