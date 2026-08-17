@@ -384,9 +384,9 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "rewriter"
-version = "0.2.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc410763ee30cc947d0141522d9912d492c4bfe3532e518e225b7a639ddd06c7"
+checksum = "d114b616cfe7579e8752b661bbefa6bd8d3065a655f9272bc490fd93a7e12c96"
 dependencies = [
  "tempfile",
 ]
@@ -478,9 +478,9 @@ dependencies = [
 
 [[package]]
 name = "similar"
-version = "3.1.2"
+version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85ee016af5d736b69fc89e19254540fa4b5f5492853fb5503920f084011c78b6"
+checksum = "4f66ca1f7aca2474dc10c942eb22feffc897735f54cd1db90138c2fddb490987"
 dependencies = [
  "bstr",
  "unicode-segmentation",
