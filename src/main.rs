@@ -432,7 +432,7 @@ fn prettier_spawner(
         drop(used_parallelism);
         sender
             .try_send(prettier)
-            .with_context(|| "failed to send to prettier")?;
+            .with_context(|| "failed to send `prettier`")?;
     }
     Ok(())
 }
