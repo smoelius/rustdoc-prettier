@@ -173,7 +173,7 @@ fn process_args() -> Result<Option<Options>> {
             let width = arg.parse()?;
             opts.max_width = Some(width);
         } else if arg == "--version" || arg == "-V" {
-            println!("rustdoc-prettier {}", env!("CARGO_PKG_VERSION"));
+            version();
             return Ok(None);
         } else if arg.to_lowercase().ends_with(".rs") {
             opts.patterns.push(arg);
@@ -185,6 +185,15 @@ fn process_args() -> Result<Option<Options>> {
         }
     }
     Ok(Some(opts))
+}
+
+fn version() {
+    const RUSTDOC_PRETTIER_VERSION: &str = env!("CARGO_PKG_VERSION");
+    let node_version = program_version("node").unwrap_or_else(|_| String::from("??"));
+    let prettier_version = program_version("prettier").unwrap_or_else(|_| String::from("??"));
+    println!(
+        "rustdoc-prettier {RUSTDOC_PRETTIER_VERSION} (node {node_version}, prettier {prettier_version})"
+    );
 }
 
 fn rustfmt_max_width() -> Result<Option<usize>> {
