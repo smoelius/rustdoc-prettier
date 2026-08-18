@@ -137,7 +137,11 @@ fn main() -> Result<()> {
         };
         for result in glob_with(&pattern, match_options)? {
             let Some(path) = result
-                .map_err(GlobError::into)
+                .or_else(|error| {
+                    let path_buf = error.path().to_path_buf();
+                    Err(GlobError::into(error))
+                        .treat_deleted_path_error_as_not_found_on_windows(&path_buf)
+                })
                 .ignore_not_found(|| format!("failed while reading `{pattern}`"))?
             else {
                 continue;
@@ -148,6 +152,7 @@ fn main() -> Result<()> {
             }
             let Some(backup) = Backup::new(&path)
                 .treat_einval_as_not_found_on_macos(&path)
+                .treat_deleted_path_error_as_not_found_on_windows(&path)
                 .ignore_not_found(|| format!("failed while backing up `{}`", path.display()))?
             else {
                 continue;
@@ -263,6 +268,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     let check = opts.check;
     #[allow(clippy::disallowed_methods)]
     let Some(contents) = read_to_string(&path)
+        .treat_deleted_path_error_as_not_found_on_windows(path.as_ref())
         .ignore_not_found(|| format!("failed while reading `{}`", path.as_ref().display()))?
     else {
         return Ok(());
@@ -311,6 +317,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         #[allow(clippy::disallowed_methods)]
         write(&path, contents)
             .treat_einval_as_not_found_on_macos(path.as_ref())
+            .treat_deleted_path_error_as_not_found_on_windows(path.as_ref())
             .ignore_not_found(|| format!("failed while writing `{}`", path.as_ref().display()))?;
     }
 
@@ -342,6 +349,29 @@ fn treat_einval_as_not_found_on_macos<T>(result: io::Result<T>, path: &Path) -> 
                 Err(error)
             }
         }
+    }
+}
+
+/// On Windows, converts an error into [`io::ErrorKind::NotFound`] if `path` disappeared while the
+/// operation was in progress.
+#[methodify]
+fn treat_deleted_path_error_as_not_found_on_windows<T>(
+    result: io::Result<T>,
+    path: &Path,
+) -> io::Result<T> {
+    const ERROR_SHARING_VIOLATION: i32 = 32;
+    #[allow(clippy::disallowed_methods)]
+    match result {
+        Err(error)
+            if cfg!(windows)
+                && (error.kind() == io::ErrorKind::PermissionDenied
+                    || error.raw_os_error() == Some(ERROR_SHARING_VIOLATION))
+                && matches!(path.try_exists_wc(), Ok(false)) =>
+        {
+            eprintln!("Warning: treating {error} as not found");
+            Err(io::Error::new(io::ErrorKind::NotFound, error))
+        }
+        result => result,
     }
 }
 
