@@ -7,6 +7,7 @@ use elaborate::std::{
     env::current_dir_wc,
     fs::read_to_string_wc,
     io::WriteContext,
+    path::PathContext,
     process::{ChildContext, CommandContext, ExitStatusContext},
     thread::available_parallelism_wc,
 };
@@ -132,7 +133,7 @@ fn main() -> Result<()> {
                 continue;
             };
             let Some(backup) = Backup::new(&path)
-                .treat_einval_as_not_found_on_macos()
+                .treat_einval_as_not_found_on_macos(&path)
                 .ignore_not_found(|| format!("failed while backing up `{}`", path.display()))?
             else {
                 continue;
@@ -293,7 +294,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     if !check {
         #[allow(clippy::disallowed_methods)]
         write(&path, contents)
-            .treat_einval_as_not_found_on_macos()
+            .treat_einval_as_not_found_on_macos(path.as_ref())
             .ignore_not_found(|| format!("failed while writing `{}`", path.as_ref().display()))?;
     }
 
@@ -302,19 +303,23 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
-/// Warns about and converts a macOS `EINVAL` error into an [`io::ErrorKind::NotFound`] error
+/// Warns about and converts a macOS `EINVAL` error into an [`io::ErrorKind::NotFound`] error if
+/// `path` disappeared while the operation was in progress.
 ///
 /// Creating a file in a directory that is concurrently removed fails with `ENOENT` on Linux, but
 /// can fail with `EINVAL` on macOS.
 #[methodify]
-fn treat_einval_as_not_found_on_macos<T>(result: io::Result<T>) -> io::Result<T> {
+fn treat_einval_as_not_found_on_macos<T>(result: io::Result<T>, path: &Path) -> io::Result<T> {
     match result {
         Ok(value) => Ok(value),
         Err(error) => {
             // `tempfile` wraps the underlying error in a type that reports neither its
             // `raw_os_error` nor it as a `source`. But the error's kind is preserved, and `EINVAL`
             // maps to `InvalidInput`.
-            if cfg!(target_os = "macos") && error.kind() == io::ErrorKind::InvalidInput {
+            if cfg!(target_os = "macos")
+                && error.kind() == io::ErrorKind::InvalidInput
+                && matches!(path.try_exists_wc(), Ok(false))
+            {
                 eprintln!("Warning: treating {error} as not found");
                 Err(io::Error::new(io::ErrorKind::NotFound, error))
             } else {
