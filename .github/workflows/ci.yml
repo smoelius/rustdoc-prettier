@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
-        environment: [ubuntu-latest, macos-latest]
+        environment: [ubuntu-latest, macos-latest, windows-latest]
 
     runs-on: ${{ matrix.environment }}
 
@@ -58,6 +58,8 @@ jobs:
             ~/.rustup/toolchains/
             target/dylint/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: actions/setup-node@v7
 
       - uses: taiki-e/install-action@v2.85.12
         with:
