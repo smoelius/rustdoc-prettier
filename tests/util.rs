@@ -2,7 +2,9 @@
 #![allow(dead_code)]
 
 use anyhow::{Context, Result, ensure};
+use assert_cmd::assert::Assert;
 use elaborate::std::{path::PathContext, process::CommandContext};
+use methodify::methodify;
 use std::{
     path::{Path, PathBuf},
     process::Command,
@@ -39,4 +41,11 @@ pub fn dirty(path: impl AsRef<Path>) -> Option<String> {
     } else {
         Some(String::from_utf8(output.stdout).unwrap())
     }
+}
+
+#[methodify]
+#[must_use]
+pub fn stderr_normalized(assert: &Assert) -> String {
+    let stderr = str::from_utf8(&assert.get_output().stderr).unwrap();
+    stderr.replace('\\', "/")
 }

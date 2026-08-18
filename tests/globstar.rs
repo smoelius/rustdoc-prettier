@@ -1,8 +1,8 @@
 use assert_cmd::cargo::cargo_bin_cmd;
 use elaborate::std::fs::read_to_string_wc;
-use predicates::prelude::*;
 
 mod util;
+use util::StderrNormalized;
 
 #[test]
 fn globstar() {
@@ -25,14 +25,16 @@ fn globstar_with_check() {
     let mut command = cargo_bin_cmd!("rustdoc-prettier");
     command.args(["**/*.rs", "--check"]);
     command.current_dir("fixtures/globstar");
-    command.assert().failure().stderr(predicate::eq(
+    let assert = command.assert().failure();
+    assert_eq!(
         "\
 Error: failed to format src/needs_formatting/mod.rs:1..2
 
 Caused by:
     `prettier` exited with code 1
 ",
-    ));
+        assert.stderr_normalized()
+    );
 
     // smoelius: Additional check for sanity.
     assert!(util::dirty("fixtures/globstar").is_none());
