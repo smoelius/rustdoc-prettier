@@ -13,6 +13,8 @@ use tempfile::tempdir;
 const N_ITERATIONS: usize = 100;
 const N_SOURCE_FILES_PER_SUBDIR: usize = 100;
 
+const ERROR_SHARING_VIOLATION: i32 = 32;
+
 static EXIT: AtomicBool = AtomicBool::new(false);
 
 // Verify that `rustdoc-prettier` succeeds even when the files matched by its glob patterns are
@@ -53,7 +55,17 @@ fn race() {
                     Err(error) if error.kind() == io::ErrorKind::NotFound => break,
                     Err(error) => {
                         eprintln!("Warning: observed {error} while removing directory");
-                        assert_eq!(io::ErrorKind::DirectoryNotEmpty, error.kind());
+                        // Unlike on Unix, Windows can reject `remove_dir_all` while
+                        // `rustdoc-prettier` has a file in the directory open. These errors occur
+                        // in this cleanup thread, not in the production code, so
+                        // `treat_deleted_path_error_as_not_found_on_windows` and `ignore_not_found`
+                        // cannot handle them here.
+                        assert!(
+                            error.kind() == io::ErrorKind::DirectoryNotEmpty
+                                || cfg!(windows)
+                                    && (error.kind() == io::ErrorKind::PermissionDenied
+                                        || error.raw_os_error() == Some(ERROR_SHARING_VIOLATION))
+                        );
                     }
                 }
             }
@@ -62,6 +74,12 @@ fn race() {
 
     for i in 0..N_ITERATIONS {
         dbg!(i);
+
+        if handle.is_finished() {
+            handle.join().unwrap();
+            panic!("worker exited unexpectedly");
+        }
+
         let mut command = cargo_bin_cmd!("rustdoc-prettier");
         command.arg("**/*.rs");
         command.current_dir(&tempdir);
