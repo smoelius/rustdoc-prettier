@@ -8,6 +8,7 @@ use tempfile::tempdir;
 #[cfg_attr(dylint_lib = "supplementary", allow(abs_home_path))]
 const README_MD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/README.md");
 
+#[cfg_attr(windows, ignore = "testing on Unix-like platforms is sufficient")]
 #[test]
 fn markdown_link_check() {
     let tempdir = tempdir().unwrap();
