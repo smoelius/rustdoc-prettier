@@ -16,6 +16,7 @@ use itertools::Itertools;
 use methodify::methodify;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
+    collections::HashSet,
     env,
     fs::{read_to_string, write},
     io,
@@ -121,6 +122,9 @@ fn main() -> Result<()> {
 
     check_if_prettier_is_installed().with_context(|| "failed to run `prettier`")?;
 
+    // Overlapping patterns can match the same file. Schedule each file only once to avoid
+    // sharing violations on Windows.
+    let mut scheduled_paths = HashSet::new();
     let mut backups = Vec::new();
     let mut handles = Vec::new();
     // smoelius: Split off `opts.patterns` so that its contents are not cloned before each call to
@@ -138,12 +142,17 @@ fn main() -> Result<()> {
             else {
                 continue;
             };
+            if scheduled_paths.contains(&path) {
+                found = true;
+                continue;
+            }
             let Some(backup) = Backup::new(&path)
                 .treat_einval_as_not_found_on_macos(&path)
                 .ignore_not_found(|| format!("failed while backing up `{}`", path.display()))?
             else {
                 continue;
             };
+            scheduled_paths.insert(path.clone());
             backups.push(backup);
             let opts = opts.clone();
             handles.push(thread::spawn(|| format_file(opts, path)));
