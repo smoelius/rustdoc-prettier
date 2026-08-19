@@ -384,9 +384,9 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "rewriter"
-version = "1.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d114b616cfe7579e8752b661bbefa6bd8d3065a655f9272bc490fd93a7e12c96"
+checksum = "bff226efea3ba856059ddf6f33f245178ae6081f99ba6c84267e205b3479a834"
 dependencies = [
  "tempfile",
 ]

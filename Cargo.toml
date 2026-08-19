@@ -14,7 +14,7 @@ elaborate = "2.2"
 glob = "0.3"
 itertools = "0.15"
 methodify = "0.1"
-rewriter = "1.0"
+rewriter = "2.1"
 toml = "1.1"
 
 [dev-dependencies]
