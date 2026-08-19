@@ -29,6 +29,7 @@ use std::{
         mpsc::{Receiver, SyncSender, sync_channel},
     },
     thread,
+    time::{Duration, Instant},
 };
 
 mod resolve_project_file;
@@ -366,12 +367,37 @@ fn treat_deleted_path_error_as_not_found_on_windows<T>(
             if cfg!(windows)
                 && (error.kind() == io::ErrorKind::PermissionDenied
                     || error.raw_os_error() == Some(ERROR_SHARING_VIOLATION))
-                && matches!(path.try_exists_wc(), Ok(false)) =>
+                && let Ok((false, n_retries)) = path.try_exists_with_retries() =>
         {
-            eprintln!("Warning: treating {error} as not found");
+            eprintln!("Warning: treating {error} (with {n_retries} retries) as not found");
             Err(io::Error::new(io::ErrorKind::NotFound, error))
         }
         result => result,
+    }
+}
+
+#[methodify]
+fn try_exists_with_retries(path: &Path) -> io::Result<(bool, usize)> {
+    const DURATION_MAX: Duration = Duration::from_millis(100);
+    let instant = Instant::now();
+    let mut duration_curr = Duration::from_millis(1);
+    let mut n_retries = 0;
+    loop {
+        #[allow(clippy::disallowed_methods)]
+        let result = path.try_exists();
+        match &result {
+            Ok(false) => return Ok((false, n_retries)),
+            Ok(true) => {}
+            Err(error) if error.kind() == io::ErrorKind::PermissionDenied => {}
+            Err(_) => return result.map(|exists| (exists, n_retries)),
+        }
+        let duration_remaining = DURATION_MAX.saturating_sub(instant.elapsed());
+        if duration_remaining.is_zero() {
+            return result.map(|exists| (exists, n_retries));
+        }
+        thread::sleep(duration_curr.min(duration_remaining));
+        duration_curr = duration_curr.saturating_mul(2);
+        n_retries += 1;
     }
 }
 
