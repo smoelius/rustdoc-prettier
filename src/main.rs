@@ -549,6 +549,11 @@ mod tests {
         assert!(readme.contains(&help));
     }
 
+    #[test]
+    fn prettier_is_installed() {
+        check_if_prettier_is_installed().unwrap();
+    }
+
     // smoelius: `used_parallelism_is_decremented_when_format_chunk_fails` and
     // `used_parallelism_is_decremented_when_queued_prettier_is_dropped` both use
     // `USED_PARALLELISM`. Ensure the two tests do not interfere with each other.
