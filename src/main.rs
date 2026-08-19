@@ -523,7 +523,7 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::{
         Chunk, HELP, Options, Prettier, USED_PARALLELISM, chunk, format_chunk, prettier_spawner,
     };
