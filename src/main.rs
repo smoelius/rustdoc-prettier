@@ -205,17 +205,24 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
     };
     let contents = read_to_string_wc(path)?;
     let table = contents.parse::<toml::Table>()?;
-    let Some(max_width) = table
-        .get("max_width")
-        .or_else(|| table.get("comment_width"))
-    else {
-        return Ok(None);
-    };
-    let Some(max_width_i64) = max_width.as_integer() else {
-        bail!("`max_width`/`comment_width` is not an integer");
-    };
-    let max_width = usize::try_from(max_width_i64)?;
-    Ok(Some(max_width))
+    if let Some(max_width) = table.get("max_width") {
+        let Some(max_width_i64) = max_width.as_integer() else {
+            bail!("`max_width` is not an integer");
+        };
+        let max_width = usize::try_from(max_width_i64)?;
+        return Ok(Some(max_width));
+    }
+    if let Some(comment_width) = table.get("comment_width") {
+        let Some(comment_width_i64) = comment_width.as_integer() else {
+            bail!("`comment_width` is not an integer");
+        };
+        let comment_width = usize::try_from(comment_width_i64)?;
+        // smoelius: Work around off-by-one error in `rustfmt` `comment_width` implementation:
+        // https://github.com/rust-lang/rustfmt/issues/6180
+        let comment_width = comment_width.saturating_sub(1);
+        return Ok(Some(comment_width));
+    }
+    Ok(None)
 }
 
 fn check_if_prettier_is_installed() -> Result<()> {
