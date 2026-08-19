@@ -193,7 +193,8 @@ fn version() {
     let node_version = program_version("node").unwrap_or_else(|_| String::from("??"));
     let prettier_version = program_version("prettier").unwrap_or_else(|_| String::from("??"));
     println!(
-        "rustdoc-prettier {RUSTDOC_PRETTIER_VERSION} (node {node_version}, prettier {prettier_version})"
+        "rustdoc-prettier {RUSTDOC_PRETTIER_VERSION} (node {node_version}, prettier \
+         {prettier_version})"
     );
 }
 
