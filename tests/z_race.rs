@@ -11,6 +11,7 @@ use std::{
 use tempfile::tempdir;
 
 const N_ITERATIONS: usize = 100;
+const N_SOURCE_FILES_PER_SUBDIR: usize = 100;
 
 static EXIT: AtomicBool = AtomicBool::new(false);
 
@@ -33,11 +34,15 @@ fn race() {
     let dir = tempdir.path().to_path_buf();
 
     let handle = thread::spawn(move || {
+        let mut i = 0;
         loop {
             if EXIT.load(Ordering::SeqCst) {
                 break;
             }
-            let subdir = create_subdir_with_source_file(&dir).unwrap();
+            // Use each subdirectory path only once so that a deletion cannot be mistaken for a
+            // later recreation of the same path.
+            let subdir = create_subdir_with_source_files(&dir, i).unwrap();
+            i += 1;
             loop {
                 // smoelius: `subdir` could be non-empty because `rustdoc-prettier` wrote into it
                 // while it was being removed. Keep trying until the directory is removed
@@ -45,6 +50,7 @@ fn race() {
                 #[allow(clippy::disallowed_methods)]
                 match remove_dir_all(&subdir) {
                     Ok(()) => break,
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => break,
                     Err(error) => {
                         eprintln!("Warning: observed {error} while removing directory");
                         assert_eq!(io::ErrorKind::DirectoryNotEmpty, error.kind());
@@ -74,12 +80,14 @@ fn create_source_file(dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn create_subdir_with_source_file(dir: &Path) -> Result<PathBuf> {
-    let subdir = dir.join("subdir");
+fn create_subdir_with_source_files(dir: &Path, i: usize) -> Result<PathBuf> {
+    let subdir = dir.join(format!("subdir-{i}"));
     create_dir_wc(&subdir)?;
-    write_wc(
-        subdir.join("b.rs"),
-        "///  Another comment in need of formatting",
-    )?;
+    for j in 0..N_SOURCE_FILES_PER_SUBDIR {
+        write_wc(
+            subdir.join(format!("b-{j}.rs")),
+            "///  Another comment in need of formatting",
+        )?;
+    }
     Ok(subdir)
 }
