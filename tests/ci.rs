@@ -1,6 +1,6 @@
 // necessist: skip-file
 
-use assert_cmd::assert::OutputAssertExt;
+use assert_cmd::{assert::OutputAssertExt, cargo::cargo_bin_cmd};
 use elaborate::std::{
     fs::{read_dir_wc, read_to_string_wc},
     process::CommandContext,
@@ -71,4 +71,19 @@ fn udeps() {
         .args(["+nightly", "udeps", "--all-features", "--all-targets"])
         .assert()
         .success();
+}
+
+#[test]
+fn version_includes_node_and_prettier_versions() {
+    const RE: &str = concat!(
+        "^rustdoc-prettier ",
+        env!("CARGO_PKG_VERSION"),
+        r" \(node v[.0-9]+, prettier [.0-9]+\)\n",
+    );
+    let mut command = cargo_bin_cmd!("rustdoc-prettier");
+    command.arg("--version");
+    command
+        .assert()
+        .success()
+        .stdout(predicates::str::is_match(RE).unwrap());
 }
