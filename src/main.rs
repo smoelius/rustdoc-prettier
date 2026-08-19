@@ -463,7 +463,7 @@ fn format_chunk(receiver: &Receiver<Prettier>, chunk: &Chunk) -> Result<String> 
     let output = child.wait_with_output_wc()?;
     ensure!(
         output.status.success(),
-        "prettier exited {}",
+        "`prettier` exited {}",
         exit_status_adverbial(output.status)
     );
 
