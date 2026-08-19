@@ -227,7 +227,7 @@ fn program_version(program: &str) -> Result<String> {
     if !output.status.success() {
         bail!(
             "`{program} --version` exited {}",
-            exit_status_to_string(output.status)
+            exit_status_adverbial(output.status)
         );
     }
     str::from_utf8(output.stdout.trim_ascii_end())
@@ -464,7 +464,7 @@ fn format_chunk(receiver: &Receiver<Prettier>, chunk: &Chunk) -> Result<String> 
     ensure!(
         output.status.success(),
         "prettier exited {}",
-        exit_status_to_string(output.status)
+        exit_status_adverbial(output.status)
     );
 
     drop(decrement_used_parallelism);
@@ -474,7 +474,7 @@ fn format_chunk(receiver: &Receiver<Prettier>, chunk: &Chunk) -> Result<String> 
     Ok(postprocess_docs(chunk.characteristics, &docs))
 }
 
-fn exit_status_to_string(status: ExitStatus) -> String {
+fn exit_status_adverbial(status: ExitStatus) -> String {
     status
         .code_wc()
         .map(|code| format!("with code {code}"))
