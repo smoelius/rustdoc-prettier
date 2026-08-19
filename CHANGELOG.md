@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0
+
+- Improve error messages ([341428a](https://github.com/smoelius/rustdoc-prettier/commit/341428a63586001b3a011c6c0a309fcaf61df3a4) and [61953a9](https://github.com/smoelius/rustdoc-prettier/commit/61953a9af2009fa6b30469eef8b606818babdae9))
+- FEATURE: `rustdoc-prettier --version` now includes `node` version and `prettier` version ([35da1ef](https://github.com/smoelius/rustdoc-prettier/commit/35da1ef154694579d6bbdff1621878af0929e05c))
+- Work around off-by-one error in `rustfmt` `comment_width` implementation ([9751ef0](https://github.com/smoelius/rustdoc-prettier/commit/9751ef031615ec1725e6d37bcf16bb155e57d147))
+- Improve "No such file or directory" error tolerance on macOS ([a2ce6a7](https://github.com/smoelius/rustdoc-prettier/commit/a2ce6a76f226ec9ee966bf3163dff95f545c3f9c))
+- Avoid formatting the same file multiple times ([b61ae41](https://github.com/smoelius/rustdoc-prettier/commit/b61ae4199f0cbb3570ff5d1c93453af2aa87392d))
+- Improve "No such file or directory" error tolerance on Windows ([dfbd77a](https://github.com/smoelius/rustdoc-prettier/commit/dfbd77aae6fbce0deebb7411925f9e5671e691a3) and [79bdb94](https://github.com/smoelius/rustdoc-prettier/commit/79bdb9467c8a6dd0f693ab981a823aaf994f8449))
+- Dependency updates
+  - `rewriter` upgraded to version 2.1
+
 ## 2.0.0
 
 - Emit more informative error messages ([8222a7c](https://github.com/smoelius/rustdoc-prettier/commit/8222a7c99ff385bd4f41a3738b255986657e0c8c))
