@@ -33,6 +33,12 @@ use std::{
 mod resolve_project_file;
 use resolve_project_file::resolve_project_file;
 
+const PRETTIER: &str = if cfg!(windows) {
+    "prettier.cmd"
+} else {
+    "prettier"
+};
+
 #[rustfmt::skip]
 const HELP: &str = "\
 Usage: rustdoc-prettier [ARGS]
@@ -191,7 +197,7 @@ fn process_args() -> Result<Option<Options>> {
 fn version() {
     const RUSTDOC_PRETTIER_VERSION: &str = env!("CARGO_PKG_VERSION");
     let node_version = program_version("node").unwrap_or_else(|_| String::from("??"));
-    let prettier_version = program_version("prettier").unwrap_or_else(|_| String::from("??"));
+    let prettier_version = program_version(PRETTIER).unwrap_or_else(|_| String::from("??"));
     println!(
         "rustdoc-prettier {RUSTDOC_PRETTIER_VERSION} (node {node_version}, prettier \
          {prettier_version})"
@@ -228,7 +234,7 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
 }
 
 fn check_if_prettier_is_installed() -> Result<()> {
-    program_version("prettier").map(|_| ())
+    program_version(PRETTIER).map(|_| ())
 }
 
 fn program_version(program: &str) -> Result<String> {
@@ -428,7 +434,7 @@ fn prettier_spawner(
 ) -> Result<()> {
     for &characteristics in characteristics {
         let mut used_parallelism = lock_used_parallelism_for_incrementing();
-        let mut command = Command::new("prettier");
+        let mut command = Command::new(PRETTIER);
         command.arg("--parser=markdown");
         if let Some(max_width) = opts.max_width {
             command.arg("--prose-wrap=always");
