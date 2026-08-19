@@ -173,6 +173,7 @@ fn main() -> Result<()> {
     for mut backup in backups {
         let _: Option<()> = backup
             .disable()
+            .treat_deleted_path_error_as_not_found_on_windows(backup.path())
             .ignore_not_found(|| String::from("failed while disabling backup"))?;
     }
     Ok(())
