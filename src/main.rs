@@ -675,4 +675,43 @@ mod tests {
         assert_eq!(*USED_PARALLELISM.lock().unwrap(), 1);
         receiver
     }
+
+    #[cfg(windows)]
+    #[test]
+    fn try_exists_with_retries_retries_delete_pending_file() {
+        use elaborate::std::fs::{OpenOptionsContext, write_wc};
+        use std::{fs::OpenOptions, os::windows::fs::OpenOptionsExt};
+
+        const DELETE: u32 = 0x0001_0000;
+        const FILE_SHARE_READ: u32 = 0x0000_0001;
+        const FILE_SHARE_WRITE: u32 = 0x0000_0002;
+        const FILE_SHARE_DELETE: u32 = 0x0000_0004;
+        const FILE_FLAG_DELETE_ON_CLOSE: u32 = 0x0400_0000;
+        const DELETE_PENDING_DURATION: Duration = Duration::from_millis(50);
+
+        let tempdir = tempfile::tempdir().unwrap();
+        let path_buf = tempdir.path().join("delete-pending");
+        write_wc(&path_buf, "").unwrap();
+        let file = OpenOptions::new()
+            .access_mode(DELETE)
+            .share_mode(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE)
+            .custom_flags(FILE_FLAG_DELETE_ON_CLOSE)
+            .open_wc(&path_buf)
+            .unwrap();
+
+        let (sender, receiver) = sync_channel(0);
+        let handle = thread::spawn(move || {
+            sender.send(()).unwrap();
+            thread::sleep(DELETE_PENDING_DURATION);
+            drop(file);
+        });
+        receiver.recv().unwrap();
+
+        let (exists, n_retries) = try_exists_with_retries(&path_buf).unwrap();
+
+        handle.join().unwrap();
+
+        assert!(!exists);
+        assert!(0 < n_retries);
+    }
 }
