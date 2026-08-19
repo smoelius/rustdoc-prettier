@@ -35,7 +35,7 @@ fn rustfmt_toml_in_parent_directory_with_check() {
 Error: failed to format main.rs:3..6
 
 Caused by:
-    prettier exited with code 1
+    `prettier` exited with code 1
 ",
     ));
 

@@ -33,7 +33,7 @@ fn comment_width_with_check() {
 Error: failed to format src/lib.rs:1..2
 
 Caused by:
-    prettier exited with code 1
+    `prettier` exited with code 1
 ",
     ));
 

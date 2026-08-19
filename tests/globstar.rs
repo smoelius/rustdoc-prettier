@@ -30,7 +30,7 @@ fn globstar_with_check() {
 Error: failed to format src/needs_formatting/mod.rs:1..2
 
 Caused by:
-    prettier exited with code 1
+    `prettier` exited with code 1
 ",
     ));
 
