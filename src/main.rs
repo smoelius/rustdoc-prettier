@@ -210,19 +210,20 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
 }
 
 fn check_if_prettier_is_installed() -> Result<()> {
-    match Command::new("prettier")
-        .arg("-v")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status_wc()
-    {
-        Ok(status) if status.success() => Ok(()),
-        Ok(status) => Err(anyhow!(
-            "`prettier -v` exited {}",
-            exit_status_to_string(status)
-        )),
-        Err(error) => Err(error),
+    program_version("prettier").map(|_| ())
+}
+
+fn program_version(program: &str) -> Result<String> {
+    let output = Command::new(program).arg("--version").output_wc()?;
+    if !output.status.success() {
+        bail!(
+            "`{program} --version` exited {}",
+            exit_status_to_string(output.status)
+        );
     }
+    str::from_utf8(output.stdout.trim_ascii_end())
+        .map(ToOwned::to_owned)
+        .map_err(Into::into)
 }
 
 fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
