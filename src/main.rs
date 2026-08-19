@@ -547,11 +547,6 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use elaborate::std::fs::read_to_string_wc;
-    use std::sync::{
-        Mutex,
-        mpsc::{Receiver, sync_channel},
-    };
 
     #[test]
     fn readme_contains_help() {
