@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result, anyhow, bail, ensure};
 use elaborate::std::{
-    env::current_dir_wc,
+    env::{current_dir_wc, var_wc},
     fs::read_to_string_wc,
     io::WriteContext,
     path::PathContext,
@@ -240,10 +240,12 @@ fn rustfmt_max_width() -> Result<Option<usize>> {
         let Some(comment_width_i64) = comment_width.as_integer() else {
             bail!("`comment_width` is not an integer");
         };
-        let comment_width = usize::try_from(comment_width_i64)?;
-        // smoelius: Work around off-by-one error in `rustfmt` `comment_width` implementation:
+        let mut comment_width = usize::try_from(comment_width_i64)?;
+        // smoelius: Work around `comment_width` off-by-one error in `rustfmt`:
         // https://github.com/rust-lang/rustfmt/issues/6180
-        let comment_width = comment_width.saturating_sub(1);
+        if enabled("WORK_AROUND_COMMENT_WIDTH_OFF_BY_ONE") {
+            comment_width = comment_width.saturating_sub(1);
+        }
         return Ok(Some(comment_width));
     }
     Ok(None)
@@ -615,6 +617,10 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
         .join()
         .map_err(|error| anyhow!("{error:?}"))
         .and_then(std::convert::identity)
+}
+
+fn enabled(key: &str) -> bool {
+    var_wc(key).is_ok_and(|value| value != "0")
 }
 
 #[cfg(test)]
