@@ -400,12 +400,6 @@
     ],
     "toml": [
       {
-        "id": 6202,
-        "kind": "user",
-        "login": "ehuss",
-        "name": "Eric Huss"
-      },
-      {
         "id": 6743,
         "kind": "user",
         "login": "epage",
