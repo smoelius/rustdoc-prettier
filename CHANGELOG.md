@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0
+
+- BREAKING: Gate `comment_width` off-by-one workaround behind `WORK_AROUND_COMMENT_WIDTH_OFF_BY_ONE` environment variable rather than apply the workaround by default ([65e254f](https://github.com/smoelius/rustdoc-prettier/commit/65e254f895fafb6a0399a6623a0d0a9fa3bc2ae7))
+
 ## 2.1.0
 
 - Improve error messages ([341428a](https://github.com/smoelius/rustdoc-prettier/commit/341428a63586001b3a011c6c0a309fcaf61df3a4) and [61953a9](https://github.com/smoelius/rustdoc-prettier/commit/61953a9af2009fa6b30469eef8b606818babdae9))
