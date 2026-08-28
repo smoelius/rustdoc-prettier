@@ -56,6 +56,11 @@ References
 1. `rustdoc-json` provides the [span] of the commented code, but not of the comment itself. To the best of my knowledge, there is no easy way to extract `rustdoc` comments using `rustdoc-json`'s output.
 2. `rustdoc-json` does not output [span]s for items that come [from macro expansions or inline assembly]. However, there are legitimate reasons to want to format such comments.
 
+## Semantic versioning policy
+
+Since `rustfmt`'s [`comment_width`] feature is unstable, and since users must opt in to it, we reserve the right to publish `comment_width`-specific breaking changes without a major version bump.
+
+[`comment_width`]: https://rust-lang.github.io/rustfmt/?version=main&search=comment_width#comment_width
 [`prettier`]: https://prettier.io/
 [`rustdoc-json`]: https://crates.io/crates/rustdoc-json
 [from macro expansions or inline assembly]: https://github.com/rust-lang/rust/blob/e190983bd3cefdec262c63dc8d47f76d965fea65/src/rustdoc-json-types/lib.rs#L65-L66
