@@ -26,13 +26,14 @@ fn clippy() {
 
 #[test]
 fn dylint() {
-    Command::new("cargo")
-        .args(["dylint", "--all", "--", "--all-targets"])
-        .env("DYLINT_RUSTFLAGS", "--deny=warnings")
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .assert()
-        .success();
+    let mut command = Command::new("cargo");
+    command.args(["dylint", "--all", "--", "--all-targets"]);
+    command.env("DYLINT_RUSTFLAGS", "--deny=warnings");
+    #[cfg(windows)]
+    command.env("CARGO_BUILD_RUSTFLAGS", "--allow=linker-messages");
+    command.stdout(Stdio::inherit());
+    command.stderr(Stdio::inherit());
+    command.assert().success();
 }
 
 #[test]
