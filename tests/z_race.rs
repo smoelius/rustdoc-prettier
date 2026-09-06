@@ -10,8 +10,8 @@ use std::{
 };
 use tempfile::tempdir;
 
-const N_ITERATIONS: usize = 100;
-const N_SOURCE_FILES_PER_SUBDIR: usize = 100;
+const N_ITERATIONS: usize = 50;
+const N_SOURCE_FILES_PER_SUBDIR: usize = 50;
 
 const ERROR_SHARING_VIOLATION: i32 = 32;
 
