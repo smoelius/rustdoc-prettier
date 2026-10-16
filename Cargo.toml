@@ -28,11 +28,11 @@ tempfile = "3.27"
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
-format-collect = "allow"
-map-unwrap-or = "allow"
-missing-errors-doc = "allow"
-missing-panics-doc = "allow"
-struct-field-names = "allow"
+format_collect = "allow"
+map_unwrap_or = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+struct_field_names = "allow"
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
