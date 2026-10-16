@@ -73,10 +73,14 @@ jobs:
           rustup component add clippy --toolchain nightly
           cargo install cargo-dylint dylint-link || true
           cargo install cargo-supply-chain       || true
-          cargo install unset                    || true
+
+      - name: Build
+        run: cargo build --all-targets
 
       - name: Test
-        run: cargo test --config "target.'cfg(all())'.runner = 'unset'" -- --nocapture
+        run: |
+          unset CARGO_TERM_COLOR
+          cargo test -- --nocapture
 
   all-checks:
     needs: [test]
