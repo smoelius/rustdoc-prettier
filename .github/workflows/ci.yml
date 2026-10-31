@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/setup-node@v7
 
-      - uses: taiki-e/install-action@v2.87.30
+      - uses: taiki-e/install-action@v2.88.0
         with:
           tool: cargo-udeps
 
