@@ -56,7 +56,7 @@ jobs:
             ~/.cargo/git/checkouts/
             ~/.dylint_drivers/
             ~/.rustup/toolchains/
-            target/dylint/
+            target/dylint/libraries/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - uses: actions/setup-node@v7
