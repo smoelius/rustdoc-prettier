@@ -16,7 +16,9 @@ use itertools::Itertools;
 use methodify::methodify;
 use rewriter::{Backup, LineColumn, Rewriter, Span};
 use std::{
+    cmp::max,
     collections::HashSet,
+    convert::identity,
     env,
     fs::{read_to_string, write},
     io,
@@ -104,7 +106,7 @@ enum DocKind {
 }
 
 static N_THREADS: LazyLock<usize> = LazyLock::new(|| {
-    std::cmp::max(
+    max(
         1,
         available_parallelism_wc().unwrap().get().saturating_sub(1),
     )
@@ -616,7 +618,7 @@ fn join_anyhow<T>(handle: thread::JoinHandle<Result<T>>) -> Result<T> {
     handle
         .join()
         .map_err(|error| anyhow!("{error:?}"))
-        .and_then(std::convert::identity)
+        .and_then(identity)
 }
 
 fn enabled(key: &str) -> bool {
