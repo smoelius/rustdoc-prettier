@@ -314,7 +314,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
         };
         let span = Span::new(start, end);
 
-        rewriter.rewrite(&span, &docs);
+        rewriter.rewrite(&span, &docs)?;
     }
 
     let contents = rewriter.contents();
