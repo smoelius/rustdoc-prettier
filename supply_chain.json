@@ -392,6 +392,22 @@
         "name": "Steven Allen"
       }
     ],
+    "thiserror": [
+      {
+        "id": 3618,
+        "kind": "user",
+        "login": "dtolnay",
+        "name": "David Tolnay"
+      }
+    ],
+    "thiserror-impl": [
+      {
+        "id": 3618,
+        "kind": "user",
+        "login": "dtolnay",
+        "name": "David Tolnay"
+      }
+    ],
     "toml": [
       {
         "id": 6743,
