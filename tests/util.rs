@@ -24,7 +24,7 @@ pub fn copy_into_tempdir(from: impl AsRef<Path>) -> Result<(TempDir, PathBuf)> {
     Ok((tempdir, path_buf))
 }
 
-pub fn copy_into(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<()> {
+fn copy_into(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<()> {
     let mut command = Command::new("cp");
     command.arg("-r");
     command.args([from.as_ref(), to.as_ref()]);
