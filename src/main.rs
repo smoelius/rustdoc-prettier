@@ -629,10 +629,11 @@ fn decrement_used_parallelism() {
 
 fn postprocess_docs(characteristics: Characteristics, docs: &str) -> String {
     let Characteristics { indent, kind, .. } = characteristics;
+    let line_ending = if docs.ends_with("\r\n") { "\r\n" } else { "\n" };
     docs.lines()
         .map(|line| {
             format!(
-                "{:indent$}{}{}{}\n",
+                "{:indent$}{}{}{}{line_ending}",
                 "",
                 match kind {
                     DocKind::Inner => "//!",
