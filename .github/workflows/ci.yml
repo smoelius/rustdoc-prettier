@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/setup-node@v7
 
-      - uses: taiki-e/install-action@v2.90.6
+      - uses: taiki-e/install-action@v2.90.10
         with:
           tool: cargo-dylint, dylint-link, cargo-udeps
 
