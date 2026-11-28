@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.1
+
+- Add semantic versioning policy to README.md ([0fd3f12](https://github.com/smoelius/rustdoc-prettier/commit/0fd3f12aaa65d740552f72d5a1b6409342bb76b1))
+- Handle doc comments without a trailing newline ([074c387](https://github.com/smoelius/rustdoc-prettier/commit/074c387f7b746b8f414ab83791df3644cab167f6))
+- Preserve Prettier's CRLF line endings in doc comments ([de77024](https://github.com/smoelius/rustdoc-prettier/commit/de770248509960af79c25e665a8962ce53cab0d5))
+- Dependency updates
+  - `rewriter` upgraded to version 3
+
 ## 3.0.0
 
 - BREAKING: Gate `comment_width` off-by-one workaround behind `WORK_AROUND_COMMENT_WIDTH_OFF_BY_ONE` environment variable rather than apply the workaround by default ([65e254f](https://github.com/smoelius/rustdoc-prettier/commit/65e254f895fafb6a0399a6623a0d0a9fa3bc2ae7))
