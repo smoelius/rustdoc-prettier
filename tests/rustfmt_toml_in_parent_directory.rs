@@ -1,6 +1,4 @@
 use assert_cmd::cargo::cargo_bin_cmd;
-use elaborate::std::fs::read_to_string_wc;
-use similar_asserts::SimpleDiff;
 
 mod util;
 use util::StderrNormalized;
@@ -16,13 +14,7 @@ fn rustfmt_toml_in_parent_directory() {
     command.current_dir(&src_dir);
     command.assert().success();
 
-    let contents_expected = read_to_string_wc(src_dir.join("main.expected.rs")).unwrap();
-    let contents_actual = read_to_string_wc(src_dir.join("main.rs")).unwrap();
-    assert!(
-        contents_expected == contents_actual,
-        "{}",
-        SimpleDiff::from_str(&contents_expected, &contents_actual, "expected", "actual")
-    );
+    util::assert_expected(src_dir.join("main.rs"));
 }
 
 #[test]

@@ -3,9 +3,13 @@
 
 use anyhow::{Context, Result, ensure};
 use assert_cmd::assert::Assert;
-use elaborate::std::{path::PathContext, process::CommandContext};
+use elaborate::std::{
+    ffi::OsStrContext, fs::read_to_string_wc, path::PathContext, process::CommandContext,
+};
 use methodify::methodify;
+use similar_asserts::SimpleDiff;
 use std::{
+    ffi::OsStr,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -27,6 +31,19 @@ pub fn copy_into(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<()> {
     let status = command.status_wc()?;
     ensure!(status.success(), "command failed: {command:?}");
     Ok(())
+}
+
+pub fn assert_expected(path: impl AsRef<Path>) {
+    let path = path.as_ref();
+    let extension = path.extension_wc().and_then(OsStr::to_str_wc).unwrap();
+    let path_expected = path.with_extension(format!("expected.{extension}"));
+    let contents_expected = read_to_string_wc(path_expected).unwrap();
+    let contents_actual = read_to_string_wc(path).unwrap();
+    assert!(
+        contents_expected == contents_actual,
+        "{}",
+        SimpleDiff::from_str(&contents_expected, &contents_actual, "expected", "actual")
+    );
 }
 
 pub fn dirty(path: impl AsRef<Path>) -> Option<String> {

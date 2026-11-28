@@ -1,6 +1,4 @@
 use assert_cmd::cargo::cargo_bin_cmd;
-use elaborate::std::fs::read_to_string_wc;
-use similar_asserts::SimpleDiff;
 
 mod util;
 use util::StderrNormalized;
@@ -14,13 +12,7 @@ fn comment_width() {
     command.current_dir(&path);
     command.assert().success();
 
-    let contents_expected = read_to_string_wc(path.join("src/lib.expected.rs")).unwrap();
-    let contents_actual = read_to_string_wc(path.join("src/lib.rs")).unwrap();
-    assert!(
-        contents_expected == contents_actual,
-        "{}",
-        SimpleDiff::from_str(&contents_expected, &contents_actual, "expected", "actual")
-    );
+    util::assert_expected(path.join("src/lib.rs"));
 }
 
 #[test]
