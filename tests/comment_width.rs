@@ -40,5 +40,5 @@ Caused by:
     );
 
     // smoelius: Additional check for sanity.
-    assert!(util::dirty("fixtures/clippy_issue_14274").is_none());
+    assert!(util::dirty("fixtures/three_modules").is_none());
 }
