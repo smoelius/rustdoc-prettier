@@ -89,6 +89,7 @@ struct Options {
 struct Chunk {
     lines: Range<usize>,
     characteristics: Characteristics,
+    span: Span,
     docs: String,
 }
 
@@ -304,17 +305,7 @@ fn format_file(opts: Options, path: impl AsRef<Path>) -> Result<()> {
             )
         })?;
 
-        let start = LineColumn {
-            line: chunk.lines.start,
-            column: 0,
-        };
-        let end = LineColumn {
-            line: chunk.lines.end,
-            column: 0,
-        };
-        let span = Span::new(start, end);
-
-        rewriter.rewrite(&span, &docs)?;
+        rewriter.rewrite(&chunk.span, &docs)?;
     }
 
     let contents = rewriter.contents();
@@ -428,26 +419,52 @@ fn ignore_not_found<T>(
 fn chunk(contents: &str) -> Vec<Chunk> {
     let mut line_curr = 1;
     let mut chunks = Vec::new();
-    for (key, key_line_pairs) in &contents
-        .lines()
+    for (key, preprocessed_lines) in &contents
+        .split_inclusive('\n')
         .map(preprocess_line)
-        .chunk_by(|&(key, _)| key)
+        .chunk_by(PreprocessedLine::characteristics)
     {
-        let lines = key_line_pairs.map(|(_key, line)| line).collect::<Vec<_>>();
+        let preprocessed_lines = preprocessed_lines.collect::<Vec<_>>();
         let line_prev = line_curr;
-        line_curr += lines.len();
+        line_curr += preprocessed_lines.len();
         if let Some(characteristics) = key {
+            let start = LineColumn {
+                line: line_prev,
+                column: 0,
+            };
+            let end = last_valid_line_column(line_prev, &preprocessed_lines);
             chunks.push(Chunk {
                 lines: line_prev..line_curr,
                 characteristics,
-                docs: lines.iter().map(|line| format!("{line}\n")).collect(),
+                span: Span::new(start, end),
+                docs: preprocessed_lines
+                    .iter()
+                    .map(PreprocessedLine::suffix)
+                    .collect(),
             });
         }
     }
     chunks
 }
 
-fn preprocess_line(line: &str) -> (Option<Characteristics>, &str) {
+#[derive(Clone, Copy, Default)]
+struct PreprocessedLine<'a> {
+    characteristics: Option<Characteristics>,
+    prefix_chars: usize,
+    suffix: &'a str,
+}
+
+impl PreprocessedLine<'_> {
+    fn characteristics(&self) -> Option<Characteristics> {
+        self.characteristics
+    }
+
+    fn suffix(&self) -> &str {
+        self.suffix
+    }
+}
+
+fn preprocess_line(line: &str) -> PreprocessedLine<'_> {
     let indent = line.chars().take_while(char::is_ascii_whitespace).count();
     let unindented = &line[indent..];
     let (characteristics, suffix) = if let Some(suffix) = unindented.strip_prefix("//!") {
@@ -467,23 +484,37 @@ fn preprocess_line(line: &str) -> (Option<Characteristics>, &str) {
             suffix,
         )
     } else {
-        return (None, "");
+        return PreprocessedLine::default();
     };
 
-    // smoelius: Skip at most one whitespace character after the `//!` or `///`.
-    let i = suffix
-        .chars()
-        .next()
-        .and_then(|c| {
-            if c.is_whitespace() {
-                Some(c.len_utf8())
-            } else {
-                None
-            }
-        })
-        .unwrap_or(0);
+    // smoelius: Skip at most one non-newline whitespace character after the `//!` or `///`.
+    let after_space = match suffix {
+        "\n" | "\r\n" => None,
+        _ => suffix.strip_prefix(char::is_whitespace),
+    };
 
-    (Some(characteristics), &suffix[i..])
+    PreprocessedLine {
+        characteristics: Some(characteristics),
+        prefix_chars: line.len() - suffix.len() + usize::from(after_space.is_some()),
+        suffix: after_space.unwrap_or(suffix),
+    }
+}
+
+fn last_valid_line_column(start: usize, preprocessed_lines: &[PreprocessedLine]) -> LineColumn {
+    let last_line = preprocessed_lines
+        .last()
+        .expect("chunk should have at least one line");
+    if last_line.suffix.ends_with('\n') {
+        LineColumn {
+            line: start + preprocessed_lines.len(),
+            column: 0,
+        }
+    } else {
+        LineColumn {
+            line: start + preprocessed_lines.len() - 1,
+            column: last_line.prefix_chars + last_line.suffix.chars().count(),
+        }
+    }
 }
 
 struct Prettier {
